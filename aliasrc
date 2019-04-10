@@ -1,0 +1,4 @@
+# Alias for normal users
+
+alias upd="sudo pacman -Syyu"
+alias mirupd="sudo pacman-mirrors -c Brazil"
