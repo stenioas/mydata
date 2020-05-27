@@ -29,7 +29,7 @@
 25. ::1 localhost.localdomain localhost
 25. 127.0.1.1 your_host_name.localdomain your_host_name
 26. passwd
-27. pacman -S dosfstools os-prober mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs
+27. pacman -S dosfstools os-prober mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs git wget
 28. useradd -m -g users -G wheel your_user
 28. passwd your_user
 29. nano /etc/sudoers
