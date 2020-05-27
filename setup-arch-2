@@ -1,0 +1,5 @@
+# XFCE
+pacman -S xfce4 lightdm lightdm-gtk-greeter
+
+# KDE
+pacman -S plasma konsole dolphin
