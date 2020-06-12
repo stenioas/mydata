@@ -1,0 +1,45 @@
+loadkeys br-abnt2
+#02. wifi-menu
+#04. ping -c 2 google.com.br
+timedatectl set-ntp true
+#06. cfdisk /dev/sdX
+#07. mkfs.vfat -F32 /dev/sda1
+##08. mkfs.btrfs /dev/sda2
+#09. mkswap /dev/sdaX
+#10. swapon /dev/sdaX
+mkdir /mnt/boot
+mount /dev/sda2 /mnt
+mount /dev/sda1 /mnt/boot
+mv /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.tmp
+awk '/^## Nome do país$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1); f=0}' /etc/pacman.d/mirrorlist.backup
+#15. pacstrap /mnt base base-devel linux-lts linux-firmware
+#16. genfstab -U /mnt >> /mnt/etc/fstab
+#17. arch-croot /mnt
+#18. ln -sf /usr/share/zoneinfo/America/Fortaleza /etc/localtime
+#19. hwclock --systohc
+#20. pacman -S nano && nano /etc/locale.gen
+#20. ## Descomenatar os locales (pt_PT)
+#21. locale-gen
+#22. echo LANG=pt_BR.UTF-8 >> /etc/locale.conf
+#23. echo KEYMAP=br-abnt2 >> /etc/vconsole.conf
+#24. echo your_host_name >> /etc/hostname
+#25. nano /etc/hosts
+#25. 127.0.0.1 localhost.localdomain localhost
+#25. ::1 localhost.localdomain localhost
+#25. 127.0.1.1 your_host_name.localdomain your_host_name
+#26. passwd
+#27. pacman -S dosfstools mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-#completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio
+#28. useradd -m -g users -G wheel your_user
+#28. passwd your_user
+#29. nano /etc/sudoers
+#30. pacman -S grub-efi-x86_64 efibootmgr os-prober
+#30. grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=arch_grub --recheck
+#30. cp /usr/share/locale/en@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
+#30. grub-mkconfig -o /boot/grub/grub.cfg
+#31. mkinitcpio -p linux-lts
+#32. systemctl enable NetworkManager && systemctl start NetworkManager
+#33. nmtui
+#34. pacman -S intel-ucode
+#34. pacman -S amd-ucode
+#35. pacman -S xf86-video-intel libgl mesa
+#35. grub-mkconfig -o /boot/grub/grub.cfg
