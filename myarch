@@ -1,9 +1,9 @@
 timedatectl set-ntp true
 mkfs.vfat -F32 /dev/sda1
 mkfs.btrfs -f /dev/sda2
+mount /dev/sda2 /mnt
 mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
-mount /dev/sda2 /mnt
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bkp
 cat /etc/pacman.d/mirrorlist.bkp | awk '/^## Brazil$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1); f=0}' > /etc/pacman.d/mirrorlist
 pacstrap /mnt base base-devel linux-lts linux-firmware
