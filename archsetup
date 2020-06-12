@@ -11,7 +11,7 @@ mkdir /mnt/boot
 mount /dev/sda2 /mnt
 mount /dev/sda1 /mnt/boot
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.tmp
-echo awk '/^## Brazil$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1); f=0}' /etc/pacman.d/mirrorlist.tmp > /etc/pacman.d/mirrorlist
+echo {awk '/^## Brazil$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1); f=0}' /etc/pacman.d/mirrorlist.tmp} > /etc/pacman.d/mirrorlist
 #15. pacstrap /mnt base base-devel linux-lts linux-firmware
 #16. genfstab -U /mnt >> /mnt/etc/fstab
 #17. arch-croot /mnt
