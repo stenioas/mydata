@@ -8,7 +8,8 @@ cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bkp
 cat /etc/pacman.d/mirrorlist.bkp | awk '/^## Brazil$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1); f=0}' > /etc/pacman.d/mirrorlist
 pacman -Syy
 pacman -S pacman-contrib --nocnfirm
-#pacstrap /mnt base base-devel linux-lts linux-firmware dosfstools mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio nano vim
+pacstrap /mnt base base-devel linux-lts linux-firmware dosfstools
+#mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio nano vim
 cp /etc/pacman.d/mirrorlist.bkp /mnt/etc/pacman.d/mirrorlist.bkp
 ln -sf /mnt/usr/share/zoneinfo/America/Fortaleza /mnt/etc/localtime
 arch-chroot /mnt hwclock --systohc --utc
