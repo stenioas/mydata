@@ -12,11 +12,9 @@ pacstrap /mnt base base-devel linux-lts linux-firmware dosfstools mtools network
 cp /etc/pacman.d/mirrorlist.bkp /mnt/etc/pacman.d/mirrorlist.bkp
 ln -sf /mnt/usr/share/zoneinfo/America/Fortaleza /mnt/etc/localtime
 arch-chroot /mnt hwclock --systohc --utc
-sed -i 's/#\('${LOCALE_UTF8}'\)/\1/' /mnt/etc/locale.gen
+sed -i 's/#\('pt_BR'\)/\1/' /mnt/etc/locale.gen
 arch-chroot /mnt locale.gen
-#20. ## Descomenatar os locales (pt_PT)
-#21. locale-gen
-#22. echo LANG=pt_BR.UTF-8 >> /etc/locale.conf
+echo LANG=pt_BR.UTF-8 >> /mnt/etc/locale.conf
 #23. echo KEYMAP=br-abnt2 >> /etc/vconsole.conf
 #24. echo your_host_name >> /etc/hostname
 #25. nano /etc/hosts
