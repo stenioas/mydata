@@ -21,12 +21,12 @@ arch-chroot /mnt useradd -m -g users -G wheel stenio
 arch-chroot /mnt passwd stenio
 arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=Archlinux --recheck
 cp /mnt/usr/share/locale/en@quot/LC_MESSAGES/grub.mo /mnt/boot/grub/locale/en.mo
-arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 arch-chroot /mnt mkinitcpio -p linux-lts
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt pacman -S virtualbox-guest-utils virtualbox-guest-modules-arch mesa mesa-libgl xfce4 xfce4-goodies lightdm lightdm-gtk-greeter --noconfirm
 arch-chroot /mnt systemctl enable NetworkManager lightdm
+arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
+umount -a
 ---
 #29. nano /etc/sudoers
 #35. pacman -S xf86-video-intel libgl mesa
-grub-mkconfig -o /boot/grub/grub.cfg
