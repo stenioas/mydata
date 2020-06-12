@@ -8,7 +8,7 @@ cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bkp
 cat /etc/pacman.d/mirrorlist.bkp | awk '/^## Brazil$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1); f=0}' > /etc/pacman.d/mirrorlist
 pacman -Syy
 pacman -S pacman-contrib --nocnfirm
-pacstrap /mnt base base-devel linux-lts linux-firmware dosfstools mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio nano vim
+#pacstrap /mnt base base-devel linux-lts linux-firmware dosfstools mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio nano vim
 cp /etc/pacman.d/mirrorlist.bkp /mnt/etc/pacman.d/mirrorlist.bkp
 ln -sf /mnt/usr/share/zoneinfo/America/Fortaleza /mnt/etc/localtime
 arch-chroot /mnt hwclock --systohc --utc
@@ -31,7 +31,7 @@ echo LANG=pt_BR.UTF-8 >> /mnt/etc/locale.conf
 #30. cp /usr/share/locale/en@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
 #30. grub-mkconfig -o /boot/grub/grub.cfg
 #31. mkinitcpio -p linux-lts
-genfstab -U /mnt >> /mnt/etc/fstab
+# genfstab -U /mnt >> /mnt/etc/fstab
 #32. systemctl enable NetworkManager && systemctl start NetworkManager
 #33. nmtui
 #34. pacman -S intel-ucode
