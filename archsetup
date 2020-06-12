@@ -11,9 +11,9 @@ pacman -S pacman-contrib --nocnfirm
 pacstrap /mnt base base-devel linux-lts linux-firmware dosfstools mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio nano vim
 cp /etc/pacman.d/mirrorlist.bkp /mnt/etc/pacman.d/mirrorlist.bkp
 ln -sf /mnt/usr/share/zoneinfo/America/Fortaleza /mnt/etc/localtime
-arch-croot /mnt hwclock --systohc --utc
+arch-chroot /mnt hwclock --systohc --utc
 sed -i 's/#\('${LOCALE_UTF8}'\)/\1/' /mnt/etc/locale.gen
-arch-croot /mnt locale.gen
+arch-chroot /mnt locale.gen
 #20. ## Descomenatar os locales (pt_PT)
 #21. locale-gen
 #22. echo LANG=pt_BR.UTF-8 >> /etc/locale.conf
