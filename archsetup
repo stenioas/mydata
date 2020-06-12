@@ -4,16 +4,16 @@ mkfs.btrfs -f /dev/sda2
 mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
 mount /dev/sda2 /mnt
-cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.tmp
+cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bkp
 cat /etc/pacman.d/mirrorlist.tmp | awk '/^## Brazil$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1); f=0}' > /etc/pacman.d/mirrorlist
 pacman -Syy
 pacman -S pacman-contrib --nocnfirm
-pacstrap /mnt base base-devel linux-lts linux-firmware dosfstools mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio
-genfstab -U /mnt >> /mnt/etc/fstab
-#17. arch-croot /mnt
-#18. ln -sf /usr/share/zoneinfo/America/Fortaleza /etc/localtime
-#19. hwclock --systohc
-#20. pacman -S nano && nano /etc/locale.gen
+pacstrap /mnt base base-devel linux-lts linux-firmware dosfstools mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio nano vim
+cp /etc/pacman.d/mirrorlist.bkp /mnt/etc/pacman.d/mirrorlist.bkp
+ln -sf /mnt/usr/share/zoneinfo/America/Fortaleza /mnt/etc/localtime
+arch-croot /mnt hwclock --systohc --utc
+sed -i 's/#\('${LOCALE_UTF8}'\)/\1/' /mnt/etc/locale.gen
+arch-croot /mnt locale.gen
 #20. ## Descomenatar os locales (pt_PT)
 #21. locale-gen
 #22. echo LANG=pt_BR.UTF-8 >> /etc/locale.conf
@@ -33,6 +33,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 #30. cp /usr/share/locale/en@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
 #30. grub-mkconfig -o /boot/grub/grub.cfg
 #31. mkinitcpio -p linux-lts
+genfstab -U /mnt >> /mnt/etc/fstab
 #32. systemctl enable NetworkManager && systemctl start NetworkManager
 #33. nmtui
 #34. pacman -S intel-ucode
