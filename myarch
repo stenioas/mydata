@@ -6,8 +6,8 @@ mount /dev/sda1 /mnt/boot
 mount /dev/sda2 /mnt
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bkp
 cat /etc/pacman.d/mirrorlist.bkp | awk '/^## Brazil$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1); f=0}' > /etc/pacman.d/mirrorlist
-pacstrap /mnt base
-#base-devel linux-lts linux-firmware dosfstools pacman-contrib mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio nano vim
+pacstrap /mnt base base-devel linux-lts linux-firmware
+#dosfstools pacman-contrib mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio nano vim
 cp /etc/pacman.d/mirrorlist.bkp /mnt/etc/pacman.d/mirrorlist.bkp
 ln -sf /mnt/usr/share/zoneinfo/America/Fortaleza /mnt/etc/localtime
 arch-chroot /mnt hwclock --systohc --utc
@@ -15,20 +15,19 @@ sed -i 's/#\('pt_BR'\)/\1/' /mnt/etc/locale.gen
 arch-chroot /mnt locale-gen
 echo LANG=pt_BR.UTF-8 >> /mnt/etc/locale.conf
 echo KEYMAP=br-abnt2 >> /mnt/etc/vconsole.conf
-echo archlinux >> /mnt/etc/hostname
+echo steniopc >> /mnt/etc/hostname
 #25. nano /etc/hosts
-echo "127.0.0.1 localhost.localdomain localhost\n::1 localhost.localdomain localhost\n127.0.1.1 archlinux.localdomain archlinux" > /mnt/etc/hosts
-#26. passwd
-#27. pacman -S 
-#28. useradd -m -g users -G wheel your_user
-#28. passwd your_user
+echo "127.0.0.1 localhost.localdomain localhost\n::1 localhost.localdomain localhost\n127.0.1.1 steniopc.localdomain steniopc" > /mnt/etc/hosts
+passwd
+arch-chroot /mnt useradd -m -g users -G wheel stenio
+arch-chroot /mnt passwd stenio
 #29. nano /etc/sudoers
-#30. pacman -S grub-efi-x86_64 efibootmgr os-prober
-#30. grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=arch_grub --recheck
-#30. cp /usr/share/locale/en@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
-#30. grub-mkconfig -o /boot/grub/grub.cfg
-#31. mkinitcpio -p linux-lts
-# genfstab -U /mnt >> /mnt/etc/fstab
+arch-chroot /mnt pacman -S grub-efi-x86_64 efibootmgr os-prober
+arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=Archlinux --recheck
+cp /mnt/usr/share/locale/en@quot/LC_MESSAGES/grub.mo /mnt/boot/grub/locale/en.mo
+arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
+arch-chroot /mnt mkinitcpio -p linux-lts
+genfstab -U /mnt >> /mnt/etc/fstab
 #32. systemctl enable NetworkManager && systemctl start NetworkManager
 #33. nmtui
 #34. pacman -S intel-ucode
