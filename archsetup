@@ -1,19 +1,15 @@
-loadkeys br-abnt2
-#02. wifi-menu
-#04. ping -c 2 google.com.br
 timedatectl set-ntp true
-#06. cfdisk /dev/sdX
-#07. mkfs.vfat -F32 /dev/sda1
-##08. mkfs.btrfs /dev/sda2
-#09. mkswap /dev/sdaX
-#10. swapon /dev/sdaX
 mkdir /mnt/boot
-mount /dev/sda2 /mnt
 mount /dev/sda1 /mnt/boot
+mount /dev/sda2 /mnt
+mkfs.vfat -F32 /dev/sda1
+mkfs.btrfs /dev/sda2
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.tmp
 cat /etc/pacman.d/mirrorlist.tmp | awk '/^## Brazil$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1); f=0}' > /etc/pacman.d/mirrorlist
-#15. pacstrap /mnt base base-devel linux-lts linux-firmware
-#16. genfstab -U /mnt >> /mnt/etc/fstab
+pacman -Syy
+pacman -S pacman-contrib
+pacstrap /mnt base base-devel linux-lts linux-firmware dosfstools mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio xf86-input-keyboard
+genfstab -U /mnt >> /mnt/etc/fstab
 #17. arch-croot /mnt
 #18. ln -sf /usr/share/zoneinfo/America/Fortaleza /etc/localtime
 #19. hwclock --systohc
@@ -28,7 +24,7 @@ cat /etc/pacman.d/mirrorlist.tmp | awk '/^## Brazil$/{f=1; next}f==0{next}/^$/{e
 #25. ::1 localhost.localdomain localhost
 #25. 127.0.1.1 your_host_name.localdomain your_host_name
 #26. passwd
-#27. pacman -S dosfstools mtools network-manager-applet networkmanager wpa_supplicant wireless_tools dialog sudo bash-#completion neofetch btrfs-progs git wget xdg-user-dirs xorg-server xorg-xinit xterm xf86-input-synaptics acpid pulseaudio
+#27. pacman -S 
 #28. useradd -m -g users -G wheel your_user
 #28. passwd your_user
 #29. nano /etc/sudoers
