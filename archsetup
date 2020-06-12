@@ -3,7 +3,7 @@ mkdir /mnt/boot
 mount /dev/sda1 /mnt/boot
 mount /dev/sda2 /mnt
 mkfs.vfat -F32 /dev/sda1
-mkfs.btrfs /dev/sda2
+mkfs.btrfs -f /dev/sda2
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.tmp
 cat /etc/pacman.d/mirrorlist.tmp | awk '/^## Brazil$/{f=1; next}f==0{next}/^$/{exit}{print substr($0, 1); f=0}' > /etc/pacman.d/mirrorlist
 pacman -Syy
