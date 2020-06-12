@@ -24,10 +24,9 @@ cp /mnt/usr/share/locale/en@quot/LC_MESSAGES/grub.mo /mnt/boot/grub/locale/en.mo
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 arch-chroot /mnt mkinitcpio -p linux-lts
 genfstab -U /mnt >> /mnt/etc/fstab
-arch-chroot /mnt systemctl enable NetworkManager
+arch-chroot /mnt pacman -S virtualbox-guest-utils virtualbox-guest-modules-arch mesa mesa-libgl xfce4 xfce4-goodies lightdm lightdm-gtk-greeter --noconfirm
+arch-chroot /mnt systemctl enable NetworkManager lightdm
+---
 #29. nano /etc/sudoers
-#33. nmtui
-#34. pacman -S intel-ucode
-#34. pacman -S amd-ucode
 #35. pacman -S xf86-video-intel libgl mesa
-#35. grub-mkconfig -o /boot/grub/grub.cfg
+grub-mkconfig -o /boot/grub/grub.cfg
