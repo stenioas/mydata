@@ -1,7 +1,0 @@
-# XFCE
-pacman -S xfce4 lightdm lightdm-gtk-greeter --noconfirm
-systemctl enable lightdm
-
-# KDE
-#pacman -S plasma konsole dolphin sddm
-#systemctl enable sddm
