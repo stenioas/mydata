@@ -11,13 +11,6 @@
 # reference : https://github.com/helmuthdu/aui
 
 # ======================================================================#
-# >>>           PARÂMETROS INICIAIS
-# ----------------------------------------------------------------------#
-
-export LANG="${NEW_LANGUAGE}.UTF-8"
-export EDITOR=nano
-
-# ======================================================================#
 # >>>           VARIÁVEIS
 # ----------------------------------------------------------------------#
 
@@ -105,7 +98,11 @@ mainmenu(){
 		case ${sel} in
 			"${txtinitial}")
 				initial
-				nextitem="${txtsetkeymap}"
+				nextitem="${txtsetconsolelocale}"
+			;;
+			"${txtsetconsolelocale}")
+				setconsolelocale
+				nextitem="${txttimesync}"
 			;;
 			"${txttimesync}")
 				settimesync
@@ -145,11 +142,11 @@ mainmenu(){
 			;;
 			"${txtsetlocale}")
 				setlocale
-				nextitem="${txtsetkeymap}"
+				nextitem="${txtsettimezone}"
 			;;
 			"${txtsettimezone}")
 				settimezone
-				nextitem="${txtsettimezone}"
+				nextitem="${txtsetkeymap}"
 			;;
 			"${txtsetkeymap}")
 				setkeymap
@@ -188,10 +185,31 @@ mainmenu(){
 
 initial() {
   print_title "PREPARANDO INSTALAÇÃO..."
+  pressanykey
   unmountdevices
   print_title "PREPARANDO INSTALAÇÃO..."
   print_warning " CONCLUÍDO!"
   pressanykey
+}
+
+setconsolelocale(){
+	items=$(ls /usr/share/i18n/locales)
+	options=()
+	defsel=""
+	for item in ${items}; do
+		if [ "${defsel}" == "" ]&&[ "${keymap::2}" == "${item::2}" ]; then
+			defsel="${item}"
+		fi
+		options+=("${item}" "")
+	done
+	locale=$(whiptail --backtitle "${apptitle}" --title "${txtsetlocale}" --menu "" --default-item "${defsel}" 0 0 0 \
+		"${options[@]}" \
+		3>&1 1>&2 2>&3)
+	if [ "$?" = "0" ]; then
+		print_title "CONFIGURANDO IDIOMA DO CONSOLE..."
+    export LANG="${locale}.UTF-8"
+		pressanykey
+	fi
 }
 
 settimesync() {
@@ -877,7 +895,6 @@ setrootpasswd() {
 
 unmountdevices() {
   print_warning "DESMONTANDO AS PARTIÇÕES..."
-	clear
 	echo "umount -R /mnt"
 	umount -R /mnt
 	if [ ! "${swapdev}" = "" ]; then
@@ -1714,6 +1731,7 @@ loadstrings(){
 
 	txtmainmenu="Menu Principal"
 	txtinitial="Preparar instalação"
+  txtsetconsolelocale="Definir o idioma do console"
   txttimesync="Sincronizar a hora"
 	txtdiskpartmenu="Partições de disco"
 	txtselectpartsmenu="Selecionar partições"
@@ -1753,10 +1771,10 @@ loadstrings(){
 	txtunmount="Desmontar"
 	txtmountdesc="Instalar e configurar"
 
-	txtformatdeviceconfirm="Warning, all data on selected devices will be erased ! \nFormat devices ?"
+	txtformatdeviceconfirm="Alerta, todos os dados do dispositivo selecionado serão apagados ! \nFormatar dispositivo ?"
 
-	txtselectpartformat="Select partition format for %1 :"
-	txtformatingpart="Formatting partition %1 as"
+	txtselectpartformat="Selecione a partição para formatar como %1 :"
+	txtformatingpart="Formatando partição %1 como"
 	txtcreateluksdevice="Create luks device :"
 	txtopenluksdevice="Open luks device :"
 	txtluksdevicecreated="luks device created !"
@@ -1904,6 +1922,7 @@ else
 	fi
 	loadstrings
 	EDITOR=nano
+  LANG="en_US.UTF-8"
 	mainmenu
 fi
 
