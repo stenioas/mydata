@@ -73,7 +73,7 @@ mainmenu(){
 		nextitem=${1}
 	fi
 	options=()
-	options+=("${txtinitial}" "(Redefinir ...)")
+	options+=("${txtsetconsolelocale}" "(timedatectl ...)")
 	options+=("${txttimesync}" "(timedatectl ...)")
 	options+=("${txtdiskpartmenu}" "")
 	options+=("${txtselectpartsmenu}" "")
@@ -90,16 +90,13 @@ mainmenu(){
 	options+=("${txtinstallgrub}" "")
 	options+=("${txtsetrootpasswd}" "(passwd ...)")
 	options+=("" "")
+	options+=("${txtreset}" "(Reset ...)")
 	options+=("${txtreboot}" "")
 	sel=$(whiptail --backtitle "${apptitle}" --title "${txtmainmenu}" --menu "" --cancel-button "${txtexit}" --default-item "${nextitem}" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		case ${sel} in
-			"${txtinitial}")
-				initial
-				nextitem="${txtsetconsolelocale}"
-			;;
 			"${txtsetconsolelocale}")
 				setconsolelocale
 				nextitem="${txttimesync}"
@@ -170,6 +167,10 @@ mainmenu(){
 			;;
 			"${txtchangelog}")
 				showchangelog
+				nextitem="${txtreset}"
+			;;
+			"${txtreset}")
+				reset
 				nextitem="${txtreboot}"
 			;;
 			"${txtreboot}")
@@ -181,15 +182,6 @@ mainmenu(){
 	else
 		clear
 	fi
-}
-
-initial() {
-  print_title "PREPARANDO INSTALAÇÃO..."
-  pressanykey
-  unmountdevices
-  print_title "PREPARANDO INSTALAÇÃO..."
-  print_warning " CONCLUÍDO!"
-  pressanykey
 }
 
 setconsolelocale(){
@@ -893,8 +885,21 @@ setrootpasswd() {
   pressanykey
 }
 
+reset() {
+  print_title "REDEFININDO INSTALAÇÃO..."
+  unmountdevices
+  print_warning " CONCLUÍDO!"
+  pressanykey
+}
+
+rebootpc() {
+	if (whiptail --backtitle "${apptitle}" --title "${txtreboot}" --yesno "${txtreboot} ?" --defaultno 0 0) then
+		clear
+		reboot
+	fi
+}
+
 unmountdevices() {
-  print_warning "DESMONTANDO AS PARTIÇÕES..."
 	echo "umount -R /mnt"
 	umount -R /mnt
 	if [ ! "${swapdev}" = "" ]; then
@@ -1667,13 +1672,6 @@ archdiinstallchroot(){
 	exit
 }
 
-rebootpc() {
-	if (whiptail --backtitle "${apptitle}" --title "${txtreboot}" --yesno "${txtreboot} ?" --defaultno 0 0) then
-		clear
-		reboot
-	fi
-}
-
 # --------------------------------------------------------
 
 # ======================================================================#
@@ -1749,6 +1747,7 @@ loadstrings(){
 	txtsetrootpasswd="Definir senha de root"
 	txthelp="Ajuda"
 	txtchangelog="Changelog"
+  txtreset="Resetar instalação"
 	txtreboot="Reiniciar"
 
 	txtautoparts="Auto Partitions"
@@ -1887,44 +1886,22 @@ while (( "$#" )); do
 	shift
 done
 
-if [ "${chroot}" = "1" ]; then
-	case ${command} in
-		'setrootpassword') archsetrootpasswordchroot;;
-		'setlocale') archsetlocalechroot;;
-		'settimeutc') archsettimeutcchroot;;
-		'settimelocal') archsettimelocalchroot;;
-		'genmkinitcpio') archgenmkinitcpiochroot;;
-		'enabledhcpcd') archenabledhcpcdchroot;;
-		'grubinstall') archgrubinstallchroot;;
-		'grubbootloaderinstall') archgrubinstallbootloaderchroot ${args};;
-		'grubbootloaderefiinstall') archgrubinstallbootloaderefichroot ${args};;
-		'grubbootloaderefiusbinstall') archgrubinstallbootloaderefiusbchroot ${args};;
-		'syslinuxbootloaderinstall') archsyslinuxinstallbootloaderchroot ${args};;
-		'syslinuxbootloaderefiinstall') archsyslinuxinstallbootloaderefichroot ${args};;
-		'systemdbootloaderinstall') archsystemdinstallchroot ${args};;
-		'refindbootloaderinstall') archrefindinstallchroot ${args};;
-		'archdiinstallandlaunch') archdiinstallandlaunchchroot;;
-		'archdiinstall') archdiinstallchroot;;
-		'archdilaunch') archdilaunchchroot;;
-	esac
-else
-	pacman -S --needed arch-install-scripts wget libnewt
-	dmesg |grep efi: > /dev/null
-	if [ "$?" == "1" ]; then
-		if [ "${eficomputer}" != "1" ]; then
-			eficomputer=0
-		fi
-	else
-		eficomputer=1
-		if [ "${efimode}" == "" ]; then
-			efimode=1
-		fi
+pacman -S --needed arch-install-scripts wget libnewt
+dmesg |grep efi: > /dev/null
+if [ "$?" == "1" ]; then
+	if [ "${eficomputer}" != "1" ]; then
+		eficomputer=0
 	fi
-	loadstrings
-	EDITOR=nano
-  LANG="en_US.UTF-8"
-	mainmenu
+else
+	eficomputer=1
+	if [ "${efimode}" == "" ]; then
+		efimode=1
+	fi
 fi
+loadstrings
+EDITOR=nano
+LANG="en_US.UTF-8"
+mainmenu
 
 exit 0
 # --------------------------------------------------------
