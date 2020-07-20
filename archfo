@@ -681,6 +681,9 @@ installessentialpkgs() {
 			return 1
 		fi
   print_title "INSTALANDO PACOTES ESSENCIAIS..."
+  for itm in $sel; do
+		pkgs="$pkgs $(echo $itm | sed 's/"//g')"
+	done
   pacstrap /mnt ${pkgs}
   print_warning " CONCLUÍDO!"
   pressanykey
@@ -694,7 +697,7 @@ installnetwork() {
   pressanykey
 }
 
-generatefstab(){
+generatefstab() {
 	options=()
 	options+=("UUID" "genfstab -U")
 	options+=("LABEL" "genfstab -L")
@@ -704,25 +707,24 @@ generatefstab(){
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
-    print_title "GERANDO FSTAB..."
 		case ${sel} in
 			"UUID")
-				clear
+        print_title "GERANDO FSTAB..."
 				echo "genfstab -U -p /mnt > /mnt/etc/fstab"
 				genfstab -U -p /mnt > /mnt/etc/fstab
 			;;
 			"LABEL")
-				clear
+        print_title "GERANDO FSTAB..."
 				echo "genfstab -L -p /mnt > /mnt/etc/fstab"
 				genfstab -L -p /mnt > /mnt/etc/fstab
 			;;
 			"PARTUUID")
-				clear
+        print_title "GERANDO FSTAB..."
 				echo "genfstab -t PARTUUID -p /mnt > /mnt/etc/fstab"
 				genfstab -t PARTUUID -p /mnt > /mnt/etc/fstab
 			;;
 			"PARTLABEL")
-				clear
+        print_title "GERANDO FSTAB..."
 				echo "genfstab -t PARTLABEL -p /mnt > /mnt/etc/fstab"
 				genfstab -t PARTLABEL -p /mnt > /mnt/etc/fstab
 			;;
@@ -1724,7 +1726,7 @@ loadstrings(){
 	txtsetlocale="Definir locale"
   txtsettimezone="Definir fuso horário"
 	txtsetkeymap="Definir layout do teclado"
-	txtgeneratemkinitc="Gerar mkinitcpio"
+	txtgeneratemkinitcpio="Gerar mkinitcpio"
 	txtinstallgrub="Instalar o grub"
 	txtsetrootpasswd="Definir senha de root"
 	txthelp="Ajuda"
