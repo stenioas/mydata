@@ -189,6 +189,7 @@ mainmenu(){
 initial() {
   print_title "PREPARANDO INSTALAÇÃO..."
   unmountdevices
+  print_title "PREPARANDO INSTALAÇÃO..."
   print_warning " CONCLUÍDO!"
   pressanykey
 }
@@ -210,9 +211,9 @@ selectdisk() {
 			options+=("${item}" "")
 	done
 	IFS=$IFS_ORIG
-	result=$(whiptail --backtitle "${APPTITLE}" --title "${1}" --menu "" 0 0 0 "{options[@]}" 3>&1 1>&2 2>&3)
-	if [ "$?" != "0" ]
-	then
+	result=$(whiptail --backtitle "${APPTITLE}" --title "${1}" --menu "" 0 0 0 \
+  "${options[@]}" 3>&1 1>&2 2>&3)
+	if [ "$?" != "0" ]; then
 			return 1
 	fi
 	echo ${result%%\ *}
