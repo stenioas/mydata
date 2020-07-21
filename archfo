@@ -546,7 +546,7 @@ formatdevice(){
 }
 
 mountparts(){
-	clear
+	print_title "${txtmount}..."
 	echo "mount ${rootdev} /mnt"
 	mount ${rootdev} /mnt
 	echo "mkdir /mnt/{boot,home}"
@@ -565,7 +565,6 @@ mountparts(){
 	fi
 	print_warning "${txtfinished}"
 	pressanykey
-	mainmenu
 }
 
 rankmirrors() {
