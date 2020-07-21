@@ -73,7 +73,7 @@ mainmenu(){
 		nextitem=${1}
 	fi
 	options=()
-	options+=("${txtsetconsolelocale}" "(timedatectl ...)")
+  options+=("${txtloadkeys}" "(loadkeys ...)")
 	options+=("${txttimesync}" "(timedatectl ...)")
 	options+=("${txtdiskpartmenu}" "")
 	options+=("${txtselectpartsmenu}" "")
@@ -97,10 +97,6 @@ mainmenu(){
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		case ${sel} in
-			"${txtsetconsolelocale}")
-				setconsolelocale
-				nextitem="${txttimesync}"
-			;;
 			"${txttimesync}")
 				settimesync
 				nextitem="${txtdiskpartmenu}"
@@ -184,30 +180,10 @@ mainmenu(){
 	fi
 }
 
-setconsolelocale(){
-	items=$(ls /usr/share/i18n/locales)
-	options=()
-	defsel=""
-	for item in ${items}; do
-		if [ "${defsel}" == "" ]&&[ "${keymap::2}" == "${item::2}" ]; then
-			defsel="${item}"
-		fi
-		options+=("${item}" "")
-	done
-	locale=$(whiptail --backtitle "${apptitle}" --title "${txtsetlocale}" --menu "" --default-item "${defsel}" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		print_title "CONFIGURANDO IDIOMA DO CONSOLE..."
-    export LANG="${locale}.UTF-8"
-		pressanykey
-	fi
-}
-
 settimesync() {
-  print_title "SINCRONIZANDO RELÓGIO COM A INTERNET..."
+  print_title "${txttimesync}..."
   timedatectl set-ntp true
-  print_warning " CONCLUÍDO!"
+  print_warning ${txtfinished}
   pressanykey
 }
 
@@ -385,7 +361,7 @@ formatbootdevice(){
 			mkfs.fat ${2}
 		;;
 	esac
-	print_warning " CONCLUÍDO!"
+	print_warning ${txtfinished}
 	pressanykey
 }
 formatswapdevice() {
@@ -585,7 +561,7 @@ rankmirrors() {
   rm /etc/pacman.d/mirrorlist.tmp
   chmod +r /etc/pacman.d/mirrorlist
   nano /etc/pacman.d/mirrorlist
-  print_warning " CONCLUÍDO!"
+  print_warning ${txtfinished}
   pressanykey
 }
 # --------------------------------------------------------
@@ -695,7 +671,7 @@ installessentialpkgs() {
 		pkgs="$pkgs $(echo $itm | sed 's/"//g')"
 	done
   pacstrap /mnt ${pkgs}
-  print_warning " CONCLUÍDO!"
+  print_warning ${txtfinished}
   pressanykey
 }
 
@@ -703,7 +679,7 @@ installnetwork() {
   print_title "INSTALANDO NETWORKMANAGER..."
   pacstrap /mnt networkmanager
   arch-chroot /mnt systemctl enable NetworkManager
-  print_warning " CONCLUÍDO!"
+  print_warning ${txtfinished}
   pressanykey
 }
 
@@ -740,7 +716,7 @@ generatefstab() {
 			;;
 		esac
 	fi
-  print_warning " CONCLUÍDO!"
+  print_warning ${txtfinished}
 	pressanykey
 }
 
@@ -751,7 +727,7 @@ sethostname(){
 		echo "echo \"${hostname}\" > /mnt/etc/hostname"
 		echo "${hostname}" > /mnt/etc/hostname
     echo -e "127.0.0.1 localhost.localdomain localhost\n::1 localhost.localdomain localhost\n127.0.1.1 ${hostname}.localdomain ${hostname}" > /mnt/etc/hosts
-    print_warning " CONCLUÍDO!"
+    print_warning ${txtfinished}
 		pressanykey
 	fi
 }
@@ -778,7 +754,7 @@ setlocale(){
 		echo "sed -i 's/#\('${locale}'\)/\1/' /mnt}/etc/locale.gen"
 		sed -i 's/#\('${locale}'\)/\1/' /mnt/etc/locale.gen
 		arch-chroot /mnt locale-gen
-    print_warning " CONCLUÍDO!"
+    print_warning ${txtfinished}
 		pressanykey
 	fi
 }
@@ -814,7 +790,7 @@ settimezone() {
 	print_title "CONFIGURANDO FUSO HORÁRIO..."
 	echo "ln -sf /mnt/usr/share/zoneinfo/${timezone} /mnt/etc/localtime"
 	ln -sf /usr/share/zoneinfo/${timezone} /mnt/etc/localtime
-  print_warning " CONCLUÍDO!"
+  print_warning ${txtfinished}
 	pressanykey
 
 	options=()
@@ -836,7 +812,7 @@ settimezone() {
 			archchroot settimelocal
 		;;
 	esac
-  print_warning " CONCLUÍDO!"
+  print_warning ${txtfinished}
 	pressanykey
 }
 
@@ -857,15 +833,16 @@ setkeymap() {
 		print_title "CONFIGURANDO TECLADO..."
 		echo "echo \"KEYMAP=${keymap}\" > /mnt/etc/vconsole.conf"
 		echo "KEYMAP=${keymap}" > /mnt/etc/vconsole.conf
-    print_warning " CONCLUÍDO!"
+    print_warning ${txtfinished}
 		pressanykey
 	fi
 }
 
 generatemkinitcpio() {
-  print_title "GERANDO MKINITCPIO..."
+  print_title "${txtgeneratemkinitcpio}..."
+  echo "mkinitcpio -p ${KERNEL_VER}"
   arch-chroot /mnt mkinitcpio -p ${KERNEL_VER}
-  print_warning " CONCLUÍDO!"
+  print_warning ${txtfinished}
   pressanykey  
 }
 
@@ -874,21 +851,21 @@ installgrub() {
   pacstrap /mnt grub-efi-x86_64 efibootmgr os-prober
   arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ArchLinux --recheck
   arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
-  print_warning " CONCLUÍDO!"
+  print_warning ${txtfinished}
   pressanykey  
 }
 
 setrootpasswd() {
   print_title "CONFIGURANDO SENHA DE ROOT..."
   arch-chroot /mnt passwd
-  print_warning " CONCLUÍDO!"
+  print_warning ${txtfinished}
   pressanykey
 }
 
 reset() {
   print_title "REDEFININDO INSTALAÇÃO..."
   unmountdevices
-  print_warning " CONCLUÍDO!"
+  print_warning ${txtfinished}
   pressanykey
 }
 
@@ -916,137 +893,6 @@ unmountdevices() {
 
 
 # --------------------------------------------------------
-archmenu(){
-	if [ "${1}" = "" ]; then
-		nextitem="."
-	else
-		nextitem=${1}
-	fi
-	options=()
-	options+=("${txtsethostname}" "/etc/hostname")
-	options+=("${txtsetkeymap}" "/etc/vconsole.conf")
-	options+=("${txtsetfont}" "/etc/vconsole.conf (${txtoptional})")
-	options+=("${txtsetlocale}" "/etc/locale.conf, /etc/locale.gen")
-	options+=("${txtsettime}" "/etc/localtime")
-	options+=("${txtsetrootpassword}" "")
-	options+=("${txtgenerate//%1/fstab}" "")
-	if [ "${luksdrive}" = "1" ]; then
-		options+=("${txtgenerate//%1/crypttab}" "")
-	fi
-	if [ "${luksroot}" = "1" ]; then
-		options+=("${txtgenerate//%1/mkinitcpio.conf-luks}" "(encrypt hooks)")
-	fi
-	if [ "${isnvme}" = "1" ]; then
-		options+=("${txtgenerate//%1/mkinitcpio.conf-nvme}" "(nvme module)")
-	fi
-	options+=("${txtedit//%1/fstab}" "(${txtoptional})")
-	options+=("${txtedit//%1/crypttab}" "(${txtoptional})")
-	options+=("${txtedit//%1/mkinitcpio.conf}" "(${txtoptional})")
-	options+=("${txtedit//%1/mirrorlist}" "(${txtoptional})")
-	options+=("${txtbootloader}" "")
-	options+=("${txtextrasmenu}" "")
-	options+=("archdi" "${txtarchdidesc}")
-	sel=$(whiptail --backtitle "${apptitle}" --title "${txtarchinstallmenu}" --menu "" --cancel-button "${txtback}" --default-item "${nextitem}" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		case ${sel} in
-			"${txtsethostname}")
-				archsethostname
-				nextitem="${txtsetkeymap}"
-			;;
-			"${txtsetkeymap}")
-				archsetkeymap
-				nextitem="${txtsetlocale}"
-			;;
-			"${txtsetfont}")
-				archsetfont
-				nextitem="${txtsetlocale}"
-			;;
-			"${txtsetlocale}")
-				archsetlocale
-				nextitem="${txtsettime}"
-			;;
-			"${txtsettime}")
-				archsettime
-				nextitem="${txtsetrootpassword}"
-			;;
-			"${txtsetrootpassword}")
-				archsetrootpassword
-				nextitem="${txtgenerate//%1/fstab}"
-			;;
-			"${txtgenerate//%1/fstab}")
-				archgenfstabmenu
-				if [ "${luksdrive}" = "1" ]; then
-					nextitem="${txtgenerate//%1/crypttab}"
-				else
-					if [ "${luksroot}" = "1" ]; then
-						nextitem="${txtgenerate//%1/mkinitcpio.conf-luks}"
-					else
-						if [ "${isnvme}" = "1" ]; then
-							nextitem="${txtgenerate//%1/mkinitcpio.conf-nvme}"
-						else
-							nextitem="${txtbootloader}"
-						fi
-					fi
-				fi
-			;;
-			"${txtgenerate//%1/crypttab}")
-				archgencrypttab
-				if [ "${luksroot}" = "1" ]; then
-					nextitem="${txtgenerate//%1/mkinitcpio.conf-luks}"
-				else
-					if [ "${isnvme}" = "1" ]; then
-						nextitem="${txtgenerate//%1/mkinitcpio.conf-nvme}"
-					else
-						nextitem="${txtbootloader}"
-					fi
-				fi
-			;;
-			"${txtgenerate//%1/mkinitcpio.conf-luks}")
-				archgenmkinitcpioluks
-				if [ "${isnvme}" = "1" ]; then
-					nextitem="${txtgenerate//%1/mkinitcpio.conf-nvme}"
-				else
-					nextitem="${txtbootloader}"
-				fi
-			;;
-			"${txtgenerate//%1/mkinitcpio.conf-nvme}")
-				archgenmkinitcpionvme
-				nextitem="${txtbootloader}"
-			;;
-			"${txtedit//%1/fstab}")
-				${EDITOR} /mnt/etc/fstab
-				nextitem="${txtedit//%1/fstab}"
-			;;
-			"${txtedit//%1/crypttab}")
-				${EDITOR} /mnt/etc/crypttab
-				nextitem="${txtedit//%1/crypttab}"
-			;;
-			"${txtedit//%1/mkinitcpio.conf}")
-				archeditmkinitcpio
-				nextitem="${txtedit//%1/mkinitcpio.conf}"
-			;;
-			"${txtedit//%1/mirrorlist}")
-				${EDITOR} /mnt/etc/pacman.d/mirrorlist
-				nextitem="${txtedit//%1/mirrorlist}"
-			;;
-			"${txtbootloader}")
-				archbootloadermenu
-				nextitem="${txtextrasmenu}"
-			;;
-			"${txtextrasmenu}")
-				archextrasmenu
-				nextitem="archdi"
-			;;
-			"archdi")
-				installarchdi
-				nextitem="archdi"
-			;;
-		esac
-		archmenu "${nextitem}"
-	fi
-}
 
 archchroot(){
 	echo "arch-chroot /mnt /root"
@@ -1141,537 +987,6 @@ archgenmkinitcpiochroot(){
 	exit
 }
 
-
-archbootloadermenu(){
-	options=()
-	options+=("grub" "")
-	if [ "${efimode}" == "1" ]; then
-		options+=("systemd-boot" "")
-		options+=("refind" "")
-	fi
-	if [ "${efimode}" != "2" ]; then
-		options+=("syslinux" "")
-	fi
-	sel=$(whiptail --backtitle "${apptitle}" --title "${txtbootloadermenu}" --menu "" --cancel-button "${txtback}" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		case ${sel} in
-			"grub") archbootloadergrubmenu;;
-			"systemd-boot")archbootloadersystemdbmenu;;
-			"refind") archbootloaderrefindmenu;;
-			"syslinux")archbootloadersyslinuxbmenu;;
-		esac
-	fi
-}
-
-
-archbootloadergrubmenu(){
-	if [ "${1}" = "" ]; then
-		nextblitem="."
-	else
-		nextblitem=${1}
-	fi
-	options=()
-	options+=("${txtinstall//%1/grub}" "pacstrap grub (efibootmgr), grub-mkconfig")
-	options+=("${txtedit//%1/grub}" "(${txtoptional})")
-	options+=("${txtinstall//%1/bootloader}" "grub-install")
-	sel=$(whiptail --backtitle "${apptitle}" --title "${txtbootloadergrubmenu}" --menu "" --cancel-button "${txtback}" --default-item "${nextblitem}" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		case ${sel} in
-			"${txtinstall//%1/grub}")
-				archgrubinstall
-				nextblitem="${txtinstall//%1/bootloader}"
-			;;
-			"${txtedit//%1/grub}")
-				${EDITOR} /mnt/etc/default/grub
-				if (whiptail --backtitle "${apptitle}" --title "${txtedit//%1/grub}" --yesno "${txtrungrubmakeconfig}" 0 0) then
-					clear
-					archchroot grubinstall
-					pressanykey
-				fi
-				nextblitem="${txtinstall//%1/bootloader}"
-			;;
-			"${txtinstall//%1/bootloader}")
-				archgrubinstallbootloader
-				nextblitem="${txtinstall//%1/bootloader}"
-			;;
-		esac
-		archbootloadergrubmenu "${nextblitem}"
-	fi
-}
-
-archgrubinstall(){
-	clear
-	echo "pacstrap /mnt grub"
-	pacstrap /mnt grub
-	pressanykey
-
-	if [ "${eficomputer}" == "1" ]; then
-		if [ "${efimode}" == "1" ]||[ "${efimode}" == "2" ]; then
-			if (whiptail --backtitle "${apptitle}" --title "${txtinstall//%1/efibootmgr}" --yesno "${txtefibootmgr}" 0 0) then
-				clear
-				echo "pacstrap /mnt efibootmgr"
-				pacstrap /mnt efibootmgr
-				pressanykey
-			fi
-		else
-			if (whiptail --backtitle "${apptitle}" --title "${txtinstall//%1/efibootmgr}" --yesno "${txtefibootmgr}" --defaultno 0 0) then
-				clear
-				echo "pacstrap /mnt efibootmgr"
-				pacstrap /mnt efibootmgr
-				pressanykey
-			fi
-		fi
-	fi
-
-	if [ "${luksroot}" = "1" ]; then
-		if (whiptail --backtitle "${apptitle}" --title "${txtinstall//%1/grub}" --yesno "${txtgrubluksdetected}" 0 0) then
-			clear
-			echo "sed -i /GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX=\\\"cryptdevice=/dev/disk/by-uuid/${luksrootuuid}:root\\\" /mnt/etc/default/grub"
-			sed -i /GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX=\"cryptdevice=/dev/disk/by-uuid/${luksrootuuid}:root\" /mnt/etc/default/grub
-			pressanykey
-		fi
-	fi
-
-	clear
-	archchroot grubinstall
-	pressanykey
-}
-archgrubinstallchroot(){
-	echo "mkdir /boot/grub"
-	echo "grub-mkconfig -o /boot/grub/grub.cfg"
-	mkdir /boot/grub
-	grub-mkconfig -o /boot/grub/grub.cfg
-	exit
-}
-
-archgrubinstallbootloader(){
-		device=$( selectdisk "${txtinstall//%1/bootloader}" )  
-	if [ "$?" = "0" ]; then
-		if [ "${eficomputer}" == "1" ]; then
-			options=()
-			if [ "${efimode}" = "1" ]; then
-				options+=("EFI" "")
-				options+=("BIOS" "")
-				options+=("BIOS+EFI" "")
-			elif [ "${efimode}" = "2" ]; then
-				options+=("BIOS+EFI" "")
-				options+=("BIOS" "")
-				options+=("EFI" "")
-			else
-				options+=("BIOS" "")
-				options+=("EFI" "")
-				options+=("BIOS+EFI" "")
-			fi
-			sel=$(whiptail --backtitle "${apptitle}" --title "${txtinstall//%1/bootloader}" --menu "" --cancel-button "${txtback}" 0 0 0 \
-				"${options[@]}" \
-				3>&1 1>&2 2>&3)
-			if [ "$?" = "0" ]; then
-				clear
-				case ${sel} in
-					"BIOS") archchroot grubbootloaderinstall ${device};;
-					"EFI") archchroot grubbootloaderefiinstall ${device};;
-					"BIOS+EFI") archchroot grubbootloaderefiusbinstall ${device};;
-				esac
-				pressanykey
-			fi
-		else
-			clear
-			archchroot grubbootloaderinstall ${device}
-			pressanykey
-		fi
-	fi
-}
-archgrubinstallbootloaderchroot(){
-	if [ ! "${1}" = "none" ]; then
-		echo "grub-install --target=i386-pc --recheck ${1}"
-		grub-install --target=i386-pc --recheck ${1}
-	fi
-	exit
-}
-archgrubinstallbootloaderefichroot(){
-	if [ ! "${1}" = "none" ]; then
-		echo "grub-install --target=x86_64-efi --efi-directory=/boot --recheck ${1}"
-		grub-install --target=x86_64-efi --efi-directory=/boot --recheck ${1}
-		isvbox=$(lspci | grep "VirtualBox G")
-		if [ "${isvbox}" ]; then
-			echo "VirtualBox detected, creating startup.nsh..."
-			echo "\EFI\arch\grubx64.efi" > /boot/startup.nsh
-		fi
-	fi
-	exit
-}
-archgrubinstallbootloaderefiusbchroot(){
-	if [ ! "${1}" = "none" ]; then
-		echo "grub-install --target=i386-pc --recheck ${1}"
-		grub-install --target=i386-pc --recheck ${1}
-		echo "grub-install --target=x86_64-efi --efi-directory=/boot --removable --recheck ${1}"
-		grub-install --target=x86_64-efi --efi-directory=/boot --removable --recheck ${1}
-		isvbox=$(lspci | grep "VirtualBox G")
-		if [ "${isvbox}" ]; then
-			echo "VirtualBox detected, creating startup.nsh..."
-			echo "\EFI\arch\grubx64.efi" > /boot/startup.nsh
-		fi
-	fi
-	exit
-}
-
-
-archbootloadersyslinuxbmenu(){
-	if [ "${1}" = "" ]; then
-		nextblitem="."
-	else
-		nextblitem=${1}
-	fi
-	options=()
-	options+=("${txtinstall//%1/syslinux}" "pacstrap syslinux (gptfdisk,mtools)")
-	options+=("${txtedit//%1/syslinux}" "(${txtoptional})")
-	options+=("${txtinstall//%1/bootloader}" "syslinux-install_update")
-	sel=$(whiptail --backtitle "${apptitle}" --title "${txtbootloadersyslinuxmenu}" --menu "" --cancel-button "${txtback}" --default-item "${nextblitem}" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		case ${sel} in
-			"${txtinstall//%1/syslinux}")
-				archsyslinuxinstall
-				nextblitem="${txtinstall//%1/bootloader}"
-			;;
-			"${txtedit//%1/syslinux}")
-				${EDITOR} /mnt/boot/syslinux/syslinux.cfg
-				nextblitem="${txtinstall//%1/bootloader}"
-			;;
-			"${txtinstall//%1/bootloader}")
-				archsyslinuxinstallbootloader
-				nextblitem="${txtinstall//%1/bootloader}"
-			;;
-		esac
-		archbootloadersyslinuxbmenu "${nextblitem}"
-	fi
-}
-archsyslinuxinstall(){
-	clear
-
-	if [ "${efimode}" == "1" ]||[ "${efimode}" == "2" ]; then
-		echo "${txtsyslinuxaddefibootmgr}"
-		additionalpkg=${additionalpkg}"efibootmgr "
-	fi
-
-	if [ "${isnvme}" = "1" ]; then
-		if [ "$(parted ${realrootdev::(-2)} print|grep gpt)" != "" ]; then
-			echo "${txtsyslinuxaddgptfdisk}"
-			additionalpkg=${additionalpkg}"gptfdisk "
-		fi
-	else
-		if [ "$(parted ${realrootdev::8} print|grep gpt)" != "" ]; then
-			echo "${txtsyslinuxaddgptfdisk}"
-			additionalpkg=${additionalpkg}"gptfdisk "
-		fi
-	fi
-
-	if [ "${bootdev}" != "" ]; then
-		if [ "$(parted ${bootdev} print|grep fat)" != "" ]; then
-			echo "${txtsyslinuxaddmtools}"
-			additionalpkg=${additionalpkg}"mtools "
-		fi
-	fi
-
-	echo "pacstrap /mnt syslinux ${additionalpkg}"
-	pacstrap /mnt syslinux ${additionalpkg}
-	pressanykey
-
-	clear
-	echo "Updating /boot/syslinux/syslinux.cfg"
-	if [ "${luksroot}" = "1" ]; then
-		echo "sed -i \"/APPEND\ root=/c\    APPEND root=/dev/mapper/root cryptdevice=${realrootdev}:root rw\" /mnt/boot/syslinux/syslinux.cfg"
-		sed -i "/APPEND\ root=/c\    APPEND root=/dev/mapper/root cryptdevice=${realrootdev}:root\ rw" /mnt/boot/syslinux/syslinux.cfg
-	else
-		echo "sed -i \"/APPEND\ root=/c\    APPEND root=${rootdev} rw\" /mnt/boot/syslinux/syslinux.cfg"
-		sed -i "/APPEND\ root=/c\    APPEND root=${rootdev}\ rw" /mnt/boot/syslinux/syslinux.cfg
-	fi
-
-	pressanykey
-}
-archsyslinuxinstallbootloader(){
-	clear
-	if [ "${efimode}" == "1" ]||[ "${efimode}" == "2" ]; then
-		archchroot syslinuxbootloaderefiinstall ${bootdev}
-	else
-		archchroot syslinuxbootloaderinstall ${bootdev}
-	fi
-	pressanykey
-}
-archsyslinuxinstallbootloaderchroot(){
-	if [ ! "${1}" = "none" ]; then
-		echo "syslinux-install_update -i -a -m"
-		syslinux-install_update -i -a -m
-	fi
-	exit
-}
-archsyslinuxinstallbootloaderefichroot(){
-	if [ ! "${1}" = "none" ]; then
-		echo "cp -r /usr/lib/syslinux/efi64/* /boot/syslinux"
-		cp -r /usr/lib/syslinux/efi64/* /boot/syslinux
-		if [ "${1::8}" == "/dev/nvm" ]; then
-			echo "efibootmgr --create --disk ${1::(-2)} --part ${1:(-1)} --loader /syslinux/syslinux.efi --label "Syslinux" --verbose"
-			efibootmgr --create --disk ${1::(-2)} --part ${1:(-1)} --loader /syslinux/syslinux.efi --label "Syslinux" --verbose
-		else
-			echo "efibootmgr --create --disk ${1::8} --part ${1:(-1)} --loader /syslinux/syslinux.efi --label "Syslinux" --verbose"
-			efibootmgr --create --disk ${1::8} --part ${1:(-1)} --loader /syslinux/syslinux.efi --label "Syslinux" --verbose
-		fi
-		isvbox=$(lspci | grep "VirtualBox G")
-		if [ "${isvbox}" ]; then
-			echo "VirtualBox detected, creating startup.nsh..."
-			echo "\syslinux\syslinux.efi" > /boot/startup.nsh
-		fi
-	fi
-	exit
-}
-
-
-archbootloadersystemdbmenu(){
-	if [ "${1}" = "" ]; then
-		nextblitem="."
-	else
-		nextblitem=${1}
-	fi
-	options=()
-	options+=("${txtinstall//%1/systemd-boot}" "bootctl install")
-	options+=("${txtedit//%1/loader.conf}" "(${txtoptional})")
-	options+=("${txtedit//%1/entries}" "(${txtoptional})")
-	sel=$(whiptail --backtitle "${apptitle}" --title "${txtbootloadersystemdmenu}" --menu "" --cancel-button "${txtback}" --default-item "${nextblitem}" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		case ${sel} in
-			"${txtinstall//%1/systemd-boot}")
-				archsystemdinstall
-				nextblitem="${txtinstall//%1/loader.conf}"
-			;;
-			"${txtedit//%1/loader.conf}")
-				${EDITOR} /mnt/boot/loader/loader.conf
-				nextblitem="${txtedit//%1/entries}"
-			;;
-			"${txtedit//%1/entries}")
-				${EDITOR} /mnt/boot/loader/entries/*
-				nextblitem="${txtedit//%1/entries}"
-			;;
-		esac
-		archbootloadersystemdbmenu "${nextblitem}"
-	fi
-}
-archsystemdinstall(){
-	clear
-	archchroot systemdbootloaderinstall ${realrootdev}
-
-	partuuid=$(blkid -s PARTUUID -o value ${realrootdev})
-	parttype=$(blkid -s TYPE -o value ${rootdev})
-
-	echo "cp /mnt/usr/share/systemd/bootctl/arch.conf /mnt/boot/loader/entries"
-	echo "echo \"timeout 2\" >> /mnt/boot/loader/loader.conf"
-	echo "cp /mnt/usr/share/systemd/bootctl/loader.conf /mnt/boot/loader"
-	if [ "${luksroot}" = "1" ]; then
-		cryptuuid=$(blkid -s UUID -o value ${realrootdev})
-		echo "sed -i \"s/PARTUUID=XXXX/\\/dev\\/mapper\\/root/\" /mnt/boot/loader/entries/arch.conf"
-		echo "sed -i \"s/XXXX/${parttype}/\" /mnt/boot/loader/entries/arch.conf"
-		echo "sed -i \"s/root=/cryptdevice=UUID=${cryptuuid}:root root=/\" /mnt/boot/loader/entries/arch.conf"
-	else
-		echo "sed -i \"s/PARTUUID=XXXX/PARTUUID=${partuuid}/\" /mnt/boot/loader/entries/arch.conf"
-		echo "sed -i \"s/XXXX/${parttype}/\" /mnt/boot/loader/entries/arch.conf"
-	fi
-	echo "cp /mnt/boot/loader/entries/arch.conf /mnt/boot/loader/entries/arch-fallback.conf"
-	echo "sed -i \"s/Arch Linux/Arch Linux Fallback/\" /mnt/boot/loader/entries/arch-fallback.conf"
-	echo "sed -i \"s/initramfs-linux/initramfs-linux-fallback/\" /mnt/boot/loader/entries/arch-fallback.conf"
-
-	cp /mnt/usr/share/systemd/bootctl/loader.conf /mnt/boot/loader
-	echo "timeout 2" >> /mnt/boot/loader/loader.conf
-	cp /mnt/usr/share/systemd/bootctl/arch.conf /mnt/boot/loader/entries
-
-
-	if [ "${luksroot}" = "1" ]; then
-		sed -i "s/PARTUUID=XXXX/\/dev\/mapper\/root/" /mnt/boot/loader/entries/arch.conf
-		sed -i "s/XXXX/${parttype}/" /mnt/boot/loader/entries/arch.conf
-		sed -i "s/root=/cryptdevice=UUID=${cryptuuid}:root root=/" /mnt/boot/loader/entries/arch.conf
-	else
-		sed -i "s/PARTUUID=XXXX/PARTUUID=${partuuid}/" /mnt/boot/loader/entries/arch.conf
-		sed -i "s/XXXX/${parttype}/" /mnt/boot/loader/entries/arch.conf
-	fi
-
-	cp /mnt/boot/loader/entries/arch.conf /mnt/boot/loader/entries/arch-fallback.conf
-	sed -i "s/Arch Linux/Arch Linux Fallback/" /mnt/boot/loader/entries/arch-fallback.conf
-	sed -i "s/initramfs-linux/initramfs-linux-fallback/" /mnt/boot/loader/entries/arch-fallback.conf
-
-	pressanykey
-}
-archsystemdinstallchroot(){
-	echo "bootctl --path=/boot install"
-	bootctl --path=/boot install
-	isvbox=$(lspci | grep "VirtualBox G")
-	if [ "${isvbox}" ]; then
-		echo "VirtualBox detected, creating startup.nsh..."
-		echo "\EFI\systemd\systemd-bootx64.efi" > /boot/startup.nsh
-	fi
-}
-
-
-archbootloaderrefindmenu(){
-	if [ "${1}" = "" ]; then
-		nextblitem="."
-	else
-		nextblitem=${1}
-	fi
-	options=()
-	options+=("${txtinstall//%1/refind}" "pacstrap refind-efi")
-	options+=("${txtedit//%1/refind_linux.conf}" "(${txtoptional})")
-	sel=$(whiptail --backtitle "${apptitle}" --title "${txtbootloaderrefindmenu}" --menu "" --cancel-button "${txtback}" --default-item "${nextblitem}" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		case ${sel} in
-			"${txtinstall//%1/refind}")
-				archrefindinstall
-				nextblitem="${txtedit//%1/refind_linux.conf}"
-			;;
-			"${txtedit//%1/refind_linux.conf}")
-				${EDITOR} /mnt/boot/refind_linux.conf
-				nextblitem="${txtedit//%1/refind_linux.conf}"
-			;;
-		esac
-		archbootloaderrefindmenu "${nextblitem}"
-	fi
-
-}
-archrefindinstall(){
-	clear
-
-	echo "pacstrap /mnt refind-efi"
-	echo "archchroot refindbootloaderinstall ${realrootdev}"
-	echo "echo \"\\\"Arch Linux         \\\" \\\"root=UUID=${rootuuid} rw add_efi_memmap\\\"\" > /mnt/boot/refind_linux.conf"
-	echo "echo \"\\\"Arch Linux Fallback\\\" \\\"root=UUID=${rootuuid} rw add_efi_memmap initrd=/initramfs-linux-fallback.img\\\"\" >> /mnt/boot/refind_linux.conf"
-	echo "echo \"\\\"Arch Linux Terminal\\\" \\\"root=UUID=${rootuuid} rw add_efi_memmap systemd.unit=multi-user.target\\\"\" >> /mnt/boot/refind_linux.conf"
-
-	pacstrap /mnt refind-efi
-	archchroot refindbootloaderinstall ${realrootdev}
-	rootuuid=$(blkid -s UUID -o value ${realrootdev})
-	echo "\"Arch Linux         \" \"root=UUID=${rootuuid} rw add_efi_memmap\"" > /mnt/boot/refind_linux.conf
-	echo "\"Arch Linux Fallback\" \"root=UUID=${rootuuid} rw add_efi_memmap initrd=/initramfs-linux-fallback.img\"" >> /mnt/boot/refind_linux.conf
-	echo "\"Arch Linux Terminal\" \"root=UUID=${rootuuid} rw add_efi_memmap systemd.unit=multi-user.target\"" >> /mnt/boot/refind_linux.conf
-	pressanykey
-}
-archrefindinstallchroot(){
-	#--usedefault /dev/sdXY --alldrivers
-	echo "refind-install"
-	refind-install
-	isvbox=$(lspci | grep "VirtualBox G")
-	if [ "${isvbox}" ]; then
-		echo "VirtualBox detected, creating startup.nsh..."
-		echo "\EFI\refind\refind_x64.efi" > /boot/startup.nsh
-	fi
-}
-
-
-archextrasmenu(){
-	pkgs=""
-	options=()
-	options+=("nano" "" on)
-	options+=("vim" "" on)
-	options+=("dhcpcd" "" on)
-	sel=$(whiptail --backtitle "${apptitle}" --title "${txtextrasmenu}" --checklist "" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ ! "$?" = "0" ]; then
-		return 1
-	fi
-	for itm in $sel; do
-		pkgs="$pkgs $(echo $itm | sed 's/"//g')"
-	done
-	clear
-	echo "pacstrap /mnt ${pkgs}"
-	pacstrap /mnt ${pkgs}
-	if [[ "${pkgs}" == *"dhcpcd"* ]]; then
-		archchroot enabledhcpcd
-	fi
-	pressanykey
-}
-archenabledhcpcdchroot(){
-	echo "systemctl enable dhcpcd"
-	systemctl enable dhcpcd
-	exit
-}
-
-installarchdi(){
-	txtinstallarchdi="Arch Linux Desktop Install (archdi) is a second script who can help you to install a full workstation.\n\nYou can just launch the script or install it. Choose in the next menu.\n\nArch Linux Desktop Install as two dependencies : wget and libnewt.\n\npacstrap wget libnewt ?"
-	if(whiptail --backtitle "${apptitle}" --title "archdi" --yesno "${txtinstallarchdi}" 0 0) then
-		clear
-		echo "pacstrap /mnt wget libnewt"
-		pacstrap /mnt wget libnewt
-	fi
-	if [ "$?" = "0" ]; then
-		options=()
-		options+=("${txtarchdiinstallandlaunch}" "")
-		options+=("${txtarchdilaunch}" "")
-		options+=("${txtarchdiinstall}" "")
-		sel=$(whiptail --backtitle "${apptitle}" --title "${txtarchdimenu}" --menu "" --cancel-button "${txtback}" 0 0 0 \
-			"${options[@]}" \
-			3>&1 1>&2 2>&3)
-		if [ "$?" = "0" ]; then
-			case ${sel} in
-				"${txtarchdiinstallandlaunch}") archchroot archdiinstallandlaunch;;
-				"${txtarchdilaunch}") archchroot archdilaunch;;
-				"${txtarchdiinstall}")
-					clear
-					archchroot archdiinstall
-					pressanykey
-				;;
-			esac
-		fi
-	fi
-}
-archdidownload(){
-	txtselectserver="Select source server :"
-	txtback="Back"
-	options=()
-	options+=("sourceforge.net" "recommended")
-	options+=("github.com" "")
-	sel=$(whiptail --backtitle "${apptitle}" --title "${txtselectserver}" --menu "" --cancel-button "${txtback}" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		case ${sel} in
-			"sourceforge.net")
-				archdiurl=archdi.sourceforge.net/archdi
-			;;
-			"github.com")
-				archdiurl=matmoul.github.io/archdi >archdi
-			;;
-		esac
-	fi
-	echo "curl -L ${archdiurl} >archdi"
-	curl -L ${archdiurl} >archdi
-}
-archdiinstallandlaunchchroot(){
-	cd
-	archdidownload
-	sh archdi -i
-	archdi --chroot
-	exit
-}
-archdilaunchchroot(){
-	cd
-	archdidownload
-	sh archdi --chroot
-	rm archdi
-	exit
-}
-archdiinstallchroot(){
-	cd
-	archdidownload
-	sh archdi -i
-	exit
-}
-
 # --------------------------------------------------------
 
 # ======================================================================#
@@ -1685,19 +1000,14 @@ print_line() {
 print_title() {
   clear
   print_line
-  echo -e "${BPurple}# $1${Reset}"
+  echo -e "${BBlue}# $1${Reset}" | tr '[:upper:]' '[:lower:]'
   print_line
   echo ""
 }
 
-print_warning() { #{{{
+print_warning() {
   T_COLS=$(tput cols)
   echo -e "\n${BGreen}$1${Reset}\n" | fold -sw $(( T_COLS - 1 ))
-}
-
-pause_function() { #{{{
-  print_line
-  read -e -sn 1 -p "Pressione qualquer tecla para continuar..."
 }
 
 contains_element() {
@@ -1707,7 +1017,7 @@ contains_element() {
 invalid_option() {
     print_line
     echo "Opção inválida. Tente novamente..."
-    pause_function
+    pressanykey
 }
 
 # --------------------------------------------------------
@@ -1721,79 +1031,54 @@ loadstrings(){
 
 	locale=pt_BR.UTF-8
 
-	txtexit="Sair"
-	txtback="Voltar"
-	txtignore="Ignorar"
+	txtexit="Exit"
+	txtback="Back"
+	txtignore="Ignore"
 
-	txtselectserver="Selecione o servidor fonte :"
-
-	txtmainmenu="Menu Principal"
-	txtinitial="Preparar instalação"
-  txtsetconsolelocale="Definir o idioma do console"
-  txttimesync="Sincronizar a hora"
-	txtdiskpartmenu="Partições de disco"
-	txtselectpartsmenu="Selecionar partições"
-  txtrankmirrors="Rankear espelhos de rede"
-  txtinstallbase="Instalar a base"
-  txtinstallessentialpkgs="Instalar pacotes essenciais"
-  txtinstallnetwork="Instalar rede"
-	txtgeneratefstab="Gerar fstab"
-	txtsethostname="Definir noma da maquina"
-	txtsetlocale="Definir locale"
-  txtsettimezone="Definir fuso horário"
-	txtsetkeymap="Definir layout do teclado"
-	txtgeneratemkinitcpio="Gerar mkinitcpio"
-	txtinstallgrub="Instalar o grub"
-	txtsetrootpasswd="Definir senha de root"
-	txthelp="Ajuda"
+	txtmainmenu="Main Menu"
+	txtloadkeys="Set console keymap layout"
+  txttimesync="Clock sync"
+	txtdiskpartmenu="Disk partitions"
+	txtselectpartsmenu="Select partitions"
+  txtrankmirrors="Rank mirrors"
+  txtinstallbase="Base packages install"
+  txtinstallessentialpkgs="Essential packages install"
+  txtinstallnetwork="Network install"
+	txtgeneratefstab="Fstab generate"
+	txtsethostname="Set computer name"
+	txtsetlocale="Set locale"
+  txtsettimezone="Set timezone"
+	txtsetkeymap="Set keymap layout"
+	txtgeneratemkinitcpio="Mkinitcpio generate"
+	txtinstallgrub="Install bootloader GRUB"
+	txtsetrootpasswd="Set root password"
+	txthelp="Help"
 	txtchangelog="Changelog"
-  txtreset="Resetar instalação"
-	txtreboot="Reiniciar"
+  txtreset="Reset"
+	txtreboot="Reboot"
 
-	txtautoparts="Auto Partitions"
 	txteditparts="Edit Partitions"
 
-	txtautopartsconfirm="Dispositivo selecionado : %1\n\nTodos os dados serão apagados ! \n\nContinuar ?"
+	txtselectdevice="Select %1 device :"
+	txtselecteddevices="Selected devices :"
 
-	txtautopartclear="Limpar todos os dados da partição"
-	txtautopartcreate="Criar partição %1"
-	txthybridpartcreate="Configurar MBR Híbrido"
-	txtautopartsettype="Configurar tipo da partição %1"
+	txtformatmountmenu="Format and Mount"
+	txtformatdevices="Format devices"
+	txtformatdevice="Format device"
+	txtmount="Mount"
+	txtunmount="Unmount"
+	txtmountdesc="Install and configure"
 
-	txtselectdevice="Selecione dispositivo %1 :"
-	txtselecteddevices="Dispositivos selecionados :"
+	txtformatdeviceconfirm="Warning, all data on selected devices will be erased ! \nFormat devices ?"
 
-	txtformatmountmenu="Formatar e Montar"
-	txtformatdevices="Formatar dispositivos"
-	txtformatdevice="Formatar dispositivo"
-	txtmount="Montar"
-	txtunmount="Desmontar"
-	txtmountdesc="Instalar e configurar"
+	txtselectpartformat="Select partition format for %1 :"
 
-	txtformatdeviceconfirm="Alerta, todos os dados do dispositivo selecionado serão apagados ! \nFormatar dispositivo ?"
-
-	txtselectpartformat="Selecione a partição para formatar como %1 :"
-	txtformatingpart="Formatando partição %1 como"
-	txtcreateluksdevice="Create luks device :"
-	txtopenluksdevice="Open luks device :"
-	txtluksdevicecreated="luks device created !"
-
-	txtinstallmenu="Install Menu"
-
-	txtarchinstallmenu="Arch Install Menu"
-
-	txtselectmirrorsbycountry="Select mirrors by country"
 	txtselectcountry="Select country"
-	txteditmirrorlist="Edit mirrorlist"
 	txtinstallarchlinux="Install Arch Linux"
 	txtinstallarchlinuxkernel="Kernel"
-	txtinstallarchlinuxfirmwares="Firmwares"
 	txtinstallarchlinuxfilesystems="File Systems"
-	txtinstallarchlinuxcustompackagelist="Custom Package List"
-	txtconfigarchlinux="Config Arch Linux"
 
 	txtsethostname="Set Computer Name"
-	txtsetfont="Set Font"
 	txtsetlocale="Set Locale"
 	txtsettime="Set Time"
 	txtsetrootpassword="Set root password"
@@ -1803,24 +1088,6 @@ loadstrings(){
 	txthwclocklocal="Local"
 
 	txtbootloader="Bootloader"
-	txtbootloadermenu="Choose your bootloader"
-
-	txtefibootmgr="efibootmgr is required for EFI computers."
-
-	txtbootloadergrubmenu="Grub Install Menu"
-	txtrungrubmakeconfig="Run grub-mkconfig ?"
-	txtgrubluksdetected="Encrypted root partion !\n\nAdd cryptdevice= to GRUB_CMDLINE_LINUX in /etc/default/grub ?"
-
-	txtbootloadersyslinuxmenu="Syslinux Install Menu"
-	txtsyslinuxaddefibootmgr="EFI install require efibootmgr"
-	txtsyslinuxaddgptfdisk="GPT disk require gptfdisk"
-	txtsyslinuxaddmtools="FAT boot part require mtools"
-
-	txtbootloadersystemdmenu="Systemd-boot Install Menu"
-
-	txtbootloaderrefindmenu="rEFInd Install Menu"
-	
-	txtextrasmenu="Extras"
 
 	txtoptional="Optional"
 	txtrecommandeasyinst="Recommanded for easy install"
@@ -1830,13 +1097,8 @@ loadstrings(){
 	txtinstall="Install %1"
 	txtenable="Enable %1"
 
-	txtpressanykey="Press any key to continue."
-
-	txtarchdidesc="Full desktop install script"
-	txtinstallarchdi="Arch Linux Desktop Install (archdi) is a second script who can help you to install a full workstation.\n\nYou can just launch the script or install it. Choose in the next menu.\n\nArch Linux Desktop Install as two dependencies : wget and libnewt.\n\npacstrap wget libnewt ?"
-	txtarchdiinstallandlaunch="Install and run archdi"
-	txtarchdiinstall="Install archdi"
-	txtarchdilaunch="Launch archdi"
+	txtpressanykey="Press any key to continue..."
+  txtfinished=" !- DONE -!"
 }
 
 # --------------------------------------------------------
