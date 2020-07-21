@@ -4,17 +4,18 @@ selectmirrorsbycountry() {
 		if [[ ! -f /etc/pacman.d/mirrorlist.backup ]]; then
 				cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
 		fi    
-		items=$( sed -n "/^##.*/N; {s/^## \(.*\)\nServer.*/\1/p}" < /etc/pacman.d/mirrorlist.backup | sort -u )
+		countries_codes=("AU" "AT" "BD" "BY" "BE" "BA" "BR" "BG" "CA" "CL" "CN" "CO" "HR" "CZ" "DK" "EC" "FI" "FR" "GE" "DE" "GR" "HK" "HU" "IS" "IN" "ID" "IR" "IE" "IL" "IT" "JP" "KZ" "KE" "LV" "LT" "LU" "NL" "NC" "NZ" "MK" "NO" "PY" "PH" "PL" "PT" "RO" "RU" "RS" "SG" "SK" "SI" "ZA" "KR" "ES" "SE" "CH" "TW" "TH" "TR" "UA" "GB" "US" "VN")
+
+    countries_names=("Australia" "Austria" "Bangladesh" "Belarus" "Belgium" "Bosnia and Herzegovina" "Brazil" "Bulgaria" "Canada" "Chile" "China" "Colombia" "Croatia" "Czech Republic" "Denmark" "Ecuador" "Finland" "France" "Georgia" "Germany" "Greece" "Hong Kong" "Hungary" "Iceland" "India" "Indonesia" "Iran" "Ireland" "Israel" "Italy" "Japan" "Kazakhstan" "Kenya" "Latvia" "Lithuania" "Luxembourg" "Netherlands" "New Caledonia" "New Zealand" "North Macedonia" "Norway" "Paraguay" "Philippines" "Poland" "Portugal" "Romania" "Russia" "Serbia" "Singapore" "Slovakia" "Slovenia" "South Africa" "South Korea" "Spain" "Sweden" "Switzerland" "Taiwan" "Thailand" "Turkey" "Ukraine" "United Kingdom" "United States" "Viet Nam")
+
 		options=()
-		IFS_ORIG=$IFS
-		IFS=$'\n'
-		for item in ${items}; do
-				options+=("${item}" "")
+		for name in ${countries_names} && code in ${countries_code}; do
+				options+=("${name}" "${code}")
 		done
-		IFS=$IFS_ORIG
 		country=$(whiptail --backtitle "${APPTITLE}" --title "${txtselectcountry}" --menu "" 0 0 0 "${options[@]}" 3>&1 1>&2 2>&3)
 		if [ "$?" != "0" ]; then
-				return 1    
+				return 1
 		fi
 		sed "s/^\(Server .*\)/\#\1/;/^## $country/N; {s/^\(## .*\n\)\#Server \(.*\)/\1Server \2/}" < /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
+    echo ${country}
 }
