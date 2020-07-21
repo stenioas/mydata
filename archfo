@@ -97,6 +97,10 @@ mainmenu(){
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		case ${sel} in
+			"${txtloadkeys}")
+				setloadkeys
+				nextitem="${txttimesync}"
+			;;
 			"${txttimesync}")
 				settimesync
 				nextitem="${txtdiskpartmenu}"
@@ -177,6 +181,28 @@ mainmenu(){
 		mainmenu "${nextitem}"
 	else
 		clear
+	fi
+}
+
+setloadkeys() {
+	items=$(find /usr/share/kbd/keymaps/ -type f -printf "%f\n" | sort -V)
+	options=()
+	defsel=""
+	for item in ${items}; do
+		if [ "${item%%.*}" == "${keymap}" ]; then
+			defsel="${item%%.*}"
+		fi
+		options+=("${item%%.*}" "")
+	done
+	keymap=$(whiptail --backtitle "${apptitle}" --title "${txtsetkeymap}" --menu "" --default-item "${defsel}" 0 0 0 \
+		"${options[@]}" \
+		3>&1 1>&2 2>&3)
+	if [ "$?" = "0" ]; then
+		print_title "${txtloadkeys}..."
+		echo "loadkeys ${keymap}"
+		loadkeys ${keymap}
+    print_warning ${txtfinished}
+		pressanykey
 	fi
 }
 
@@ -538,7 +564,7 @@ mountparts(){
 }
 
 rankmirrors() {
-  print_title "RANKEANDO ESPELHOS DE REDE..."
+  print_title "${txtrankmirrors}..."
   pacman -Sy --needed pacman-contrib --noconfirm
   if [[ ! -f /etc/pacman.d/mirrorlist.backup ]]; then
     cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
@@ -1000,7 +1026,7 @@ print_line() {
 print_title() {
   clear
   print_line
-  echo -e "${BBlue}# $1${Reset}" | tr '[:upper:]' '[:lower:]'
+  echo -e "${BBlue}# $1${Reset}" | tr '[upper]' '[lower]'
   print_line
   echo ""
 }
