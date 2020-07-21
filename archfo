@@ -1001,25 +1001,19 @@ print_title() {
 
 print_warning() {
   T_COLS=$(tput cols)
-  echo -e "\n${BGreen} | $1$ |{Reset}\n" | fold -sw $(( T_COLS - 1 ))
+  echo -e "\n${BGreen} $1${Reset}\n" | fold -sw $(( T_COLS - 1 ))
 }
 
 contains_element() {
     for e in "${@:2}"; do [[ "$e" == "$1" ]] && break; done;
 }
 
-invalid_option() {
-    print_line
-    echo "Invalid option. Try again..."
-    pressanykey
-}
-
-# --------------------------------------------------------
-
 pressanykey() {
 	print_line
   read -e -sn 1 -p "${txtpressanykey}"
 }
+
+# --------------------------------------------------------
 
 loadstrings(){
 
@@ -1089,7 +1083,7 @@ loadstrings(){
 	txtenable="Enable %1"
 
 	txtpressanykey="Press any key to continue..."
-  txtfinished=" DONE!"
+  txtfinished=" DONE !"
 }
 
 # --------------------------------------------------------
