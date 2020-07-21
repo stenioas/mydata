@@ -73,7 +73,7 @@ mainmenu(){
 		nextitem=${1}
 	fi
 	options=()
-  options+=("${txtloadkeys}" "(loadkeys ...)")
+  options+=("${txtsetloadkeys}" "(loadkeys ...)")
 	options+=("${txttimesync}" "(timedatectl ...)")
 	options+=("${txtdiskpartmenu}" "")
 	options+=("${txtselectpartsmenu}" "")
@@ -97,7 +97,7 @@ mainmenu(){
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		case ${sel} in
-			"${txtloadkeys}")
+			"${txtsetloadkeys}")
 				setloadkeys
 				nextitem="${txttimesync}"
 			;;
@@ -194,11 +194,11 @@ setloadkeys() {
 		fi
 		options+=("${item%%.*}" "")
 	done
-	keymap=$(whiptail --backtitle "${apptitle}" --title "${txtsetkeymap}" --menu "" --default-item "${defsel}" 0 0 0 \
+	keymap=$(whiptail --backtitle "${apptitle}" --title "${txtsetloadkeys}" --menu "" --default-item "${defsel}" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
-		print_title "${txtloadkeys}..."
+		print_title "${txtsetloadkeys}..."
 		echo "loadkeys ${keymap}"
 		loadkeys ${keymap}
     print_warning "${txtfinished}"
@@ -208,6 +208,7 @@ setloadkeys() {
 
 settimesync() {
   print_title "${txttimesync}..."
+	echo "timedatectl set-ntp true"
   timedatectl set-ntp true
   print_warning "${txtfinished}"
   pressanykey
@@ -401,7 +402,7 @@ formatswapdevice() {
 	fi
 	case ${sel} in
 		swap)
-	    print_title "FORMATANDO PARTIÇÃO SWAP..."
+	    print_title "${txtformatdevice} SWAP..."
 			mkswap ${swapdev}
 			echo ""
 			pressanykey
@@ -428,7 +429,7 @@ formatdevice(){
 	if [ ! "$?" = "0" ]; then
 		return 1
 	fi
-	print_title "FORMATANDO PARTIÇÃO RAIZ..."
+	print_title "${txtformatdevice} RAIZ..."
 	case ${sel} in
 		btrfs)
 			fspkgs="${fspkgs[@]} btrfs-progs"
@@ -674,7 +675,9 @@ installessentialpkgs() {
 installnetwork() {
   print_title "${txtinstallnetwork}..."
   pacstrap /mnt networkmanager
+	echo "systemctl enable NetworkManager"
   arch-chroot /mnt systemctl enable NetworkManager
+	exit
   print_warning "${txtfinished}"
   pressanykey
 }
@@ -746,7 +749,9 @@ setlocale(){
 		echo "LC_COLLATE=C" >> /mnt/etc/locale.conf
 		echo "sed -i 's/#\('${locale}'\)/\1/' /mnt}/etc/locale.gen"
 		sed -i 's/#\('${locale}'\)/\1/' /mnt/etc/locale.gen
+		echo "locale-gen"
 		arch-chroot /mnt locale-gen
+		exit
     print_warning "${txtfinished}"
 		pressanykey
 	fi
@@ -799,10 +804,14 @@ settimezone() {
   print_title "${txtsettime}..."
 	case ${sel} in
 		"${txthwclockutc}")
-			archchroot settimeutc
+			echo "hwclock --systohc --utc"
+			arch-chroot /mnt hwclock --systohc --utc
+			exit
 		;;
 		"${txthwclocklocal}")
-			archchroot settimelocal
+			echo "hwclock --systohc --localtime"
+			arch-chroot /mnt hwclock --systohc --localtime
+			exit
 		;;
 	esac
   print_warning "${txtfinished}"
@@ -823,7 +832,7 @@ setkeymap() {
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
-		print_title "CONFIGURANDO TECLADO..."
+		print_title "${txtsetkeymap}..."
 		echo "echo \"KEYMAP=${keymap}\" > /mnt/etc/vconsole.conf"
 		echo "KEYMAP=${keymap}" > /mnt/etc/vconsole.conf
     print_warning "${txtfinished}"
@@ -835,6 +844,7 @@ generatemkinitcpio() {
   print_title "${txtgeneratemkinitcpio}..."
   echo "mkinitcpio -p ${KERNEL_VER}"
   arch-chroot /mnt mkinitcpio -p ${KERNEL_VER}
+	exit
   print_warning "${txtfinished}"
   pressanykey  
 }
@@ -842,8 +852,12 @@ generatemkinitcpio() {
 installgrub() {
   print_title "${txtinstallgrub}..."
   pacstrap /mnt grub-efi-x86_64 efibootmgr os-prober
+	echo "grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Arch --recheck"
   arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Arch --recheck
+	echo ""
+	echo "grub-mkconfig -o /boot/grub/grub.cfg"
   arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
+	exit
   print_warning "${txtfinished}"
   pressanykey  
 }
@@ -923,11 +937,6 @@ archsettimeutcchroot(){
 	hwclock --systohc --utc
 	exit
 }
-archsettimelocalchroot(){
-	echo "hwclock --systohc --localtime"
-	hwclock --systohc --localtime
-	exit
-}
 
 archsetrootpassword(){
 	clear
@@ -994,7 +1003,7 @@ print_title() {
   clear
   print_line
   local TITLE="$1"
-  echo -e "${BBlue}# ${TITLE^^}${Reset}"
+  echo -e "${BRed}# ${TITLE^^}${Reset}"
   print_line
   echo ""
 }
@@ -1024,7 +1033,7 @@ loadstrings(){
 	txtignore="Ignore"
 
 	txtmainmenu="Main Menu"
-	txtloadkeys="Set console keymap layout"
+	txtsetloadkeys="Set console keymap layout"
   txttimesync="Clock sync"
 	txtdiskpartmenu="Disk partitions"
 	txtselectpartsmenu="Select partitions"
@@ -1083,7 +1092,7 @@ loadstrings(){
 	txtenable="Enable %1"
 
 	txtpressanykey="Press any key to continue..."
-  txtfinished=" DONE !"
+  txtfinished=" OK!"
 }
 
 # --------------------------------------------------------
