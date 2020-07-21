@@ -405,6 +405,7 @@ formatswapdevice() {
 	    print_title "${txtformatdevice} SWAP..."
 			mkswap ${swapdev}
 			echo ""
+			print_warning "${txtfinished}"
 			pressanykey
 		;;
 	esac
@@ -540,6 +541,7 @@ formatdevice(){
 		;;
 	esac
 	echo ""
+	print_warning "${txtfinished}"
 	pressanykey
 }
 
@@ -561,6 +563,7 @@ mountparts(){
 		echo "mount ${homedev} /mnt/home"
 		mount ${homedev} /mnt/home
 	fi
+	print_warning "${txtfinished}"
 	pressanykey
 }
 
@@ -910,34 +913,6 @@ archchroot(){
 	echo "exit"
 }
 
-archsetfont(){
-	items=$(find /usr/share/kbd/consolefonts/*.psfu.gz -printf "%f\n")
-
-	options=()
-	for item in ${items}; do
-		options+=("${item%%.*}" "")
-	done
-	vcfont=$(whiptail --backtitle "${apptitle}" --title "${txtsetfont} (${txtoptional})" --menu "" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		clear
-		echo "echo \"FONT=${vcfont}\" >> /mnt/etc/vconsole.conf"
-		echo "FONT=${vcfont}" >> /mnt/etc/vconsole.conf
-		pressanykey
-	fi
-}
-archsetlocalechroot(){
-	echo "locale-gen"
-	locale-gen
-	exit
-}
-archsettimeutcchroot(){
-	echo "hwclock --systohc --utc"
-	hwclock --systohc --utc
-	exit
-}
-
 archsetrootpassword(){
 	clear
 	archchroot setrootpassword
@@ -1019,7 +994,7 @@ contains_element() {
 
 pressanykey() {
 	print_line
-  read -e -sn 1 -p "${txtpressanykey}"
+  read -e -sn 1 -p "${BCyan}${txtpressanykey}${Reset}"
 }
 
 # --------------------------------------------------------
