@@ -158,7 +158,7 @@ mainmenu(){
 				nextitem="${txtsetrootpassword}"
 			;;
 			"${txtsetrootpassword}")
-				setrootpasswd
+				setrootpassword
 				nextitem="${txtreboot}"
 			;;
 			"${txthelp}")
@@ -201,7 +201,7 @@ setloadkeys() {
 		print_title "${txtloadkeys}..."
 		echo "loadkeys ${keymap}"
 		loadkeys ${keymap}
-    print_warning ${txtfinished}
+    print_warning "${txtfinished}"
 		pressanykey
 	fi
 }
@@ -209,7 +209,7 @@ setloadkeys() {
 settimesync() {
   print_title "${txttimesync}..."
   timedatectl set-ntp true
-  print_warning ${txtfinished}
+  print_warning "${txtfinished}"
   pressanykey
 }
 
@@ -387,7 +387,7 @@ formatbootdevice(){
 			mkfs.fat ${2}
 		;;
 	esac
-	print_warning ${txtfinished}
+	print_warning "${txtfinished}"
 	pressanykey
 }
 formatswapdevice() {
@@ -564,36 +564,23 @@ mountparts(){
 }
 
 rankmirrors() {
-  countries_code=("AU" "AT" "BD" "BY" "BE" "BA" "BR" "BG" "CA" "CL" "CN" "CO" "HR" "CZ" "DK" "EC" "FI" "FR" "GE" "DE" "GR" "HK" "HU" "IS" "IN" "ID" "IR" "IE" "IL" "IT" "JP" "KZ" "KE" "LV" "LT" "LU" "NL" "NC" "NZ" "MK" "NO" "PY" "PH" "PL" "PT" "RO" "RU" "RS" "SG" "SK" "SI" "ZA" "KR" "ES" "SE" "CH" "TW" "TH" "TR" "UA" "GB" "US" "VN")
-  countries=("Australia" "Austria" "Bangladesh" "Belarus" "Belgium" "Bosnia and Herzegovina" "Brazil" "Bulgaria" "Canada" "Chile" "China" "Colombia" "Croatia" "Czech Republic" "Denmark" "Ecuador" "Finland" "France" "Georgia" "Germany" "Greece" "Hong Kong" "Hungary" "Iceland" "India" "Indonesia" "Iran" "Ireland" "Israel" "Italy" "Japan" "Kazakhstan" "Kenya" "Latvia" "Lithuania" "Luxembourg" "Netherlands" "New Caledonia" "New Zealand" "North Macedonia" "Norway" "Paraguay" "Philippines" "Poland" "Portugal" "Romania" "Russia" "Serbia" "Singapore" "Slovakia" "Slovenia" "South Africa" "South Korea" "Spain" "Sweden" "Switzerland" "Taiwan" "Thailand" "Turkey" "Ukraine" "United Kingdom" "United States" "Viet Nam")
-
-	country=$(whiptail --backtitle "${apptitle}" --title "${txtselectcountry}" --menu "" 0 0 0 \
-	"${countries[@]}" 3>&1 1>&2 2>&3)
-	if [ "$?" != "0" ]; then
-		return 1    
-	fi
-
-  if contains_element "$country" "${countries[@]}"; then
-    country_code=${countries_code[$((REPLY - 1))]}
-  fi
   print_title "${txtrankmirrors}..."
   pacman -Sy --needed pacman-contrib --noconfirm
   if [[ ! -f /etc/pacman.d/mirrorlist.backup ]]; then
     cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
   fi
-  curl -so "/etc/pacman.d/mirrorlist.tmp" "https://www.archlinux.org/mirrorlist/?country=${country_code}&use_mirror_status=on"
+  curl -so "/etc/pacman.d/mirrorlist.tmp" "https://www.archlinux.org/mirrorlist/?country=BR&use_mirror_status=on"
   sed -i 's/^#Server/Server/g' "/etc/pacman.d/mirrorlist.tmp"
   rankmirrors /etc/pacman.d/mirrorlist.tmp > /etc/pacman.d/mirrorlist
   rm /etc/pacman.d/mirrorlist.tmp
   chmod +r /etc/pacman.d/mirrorlist
   nano /etc/pacman.d/mirrorlist
-  print_warning ${txtfinished}
+  print_warning "${txtfinished}"
   pressanykey
 }
 # --------------------------------------------------------
 
 installbase() {
-  print_title "${txtinstallbase}..."
 	pkgs="base base-devel linux-firmware"
 	options=()
 	options+=("linux" "")
@@ -652,28 +639,10 @@ installbase() {
 		pkgs="$pkgs $(echo $itm | sed 's/"//g')"
 	done
 	
-	if [[ ${cpl} == 1 ]]; then
-		sed -i '/^\s*$/d' /tmp/archfi-custom-package-list
-		sed -i '/^#/ d' /tmp/archfi-custom-package-list
-		options=()
-		while read pkg; do
-			options+=("${pkg}" "" on)
-		done < /tmp/archfi-custom-package-list
-		sel=$(whiptail --backtitle "${apptitle}" --title "${txtinstallarchlinuxcustompackagelist}" --checklist "" 0 0 0 \
-			"${options[@]}" \
-			3>&1 1>&2 2>&3)
-		if [ ! "$?" = "0" ]; then
-			return 1
-		fi
-		for itm in $sel; do
-			pkgs="$pkgs $(echo $itm | sed 's/"//g')"
-		done
-	fi
-	
-	clear
+  print_title "${txtinstallbase}..."
 	echo "pacstrap /mnt ${pkgs}"
 	pacstrap /mnt ${pkgs}
-	print_warning ${txtfinished}
+	print_warning "${txtfinished}"
 	pressanykey
 }
 
@@ -693,68 +662,65 @@ installessentialpkgs() {
 		if [ ! "$?" = "0" ]; then
 			return 1
 		fi
-  print_title "INSTALANDO PACOTES ESSENCIAIS..."
+  print_title "${txtinstallessentialpkgs}..."
   for itm in $sel; do
 		pkgs="$pkgs $(echo $itm | sed 's/"//g')"
 	done
   pacstrap /mnt ${pkgs}
-  print_warning ${txtfinished}
+  print_warning "${txtfinished}"
   pressanykey
 }
 
 installnetwork() {
-  print_title "INSTALANDO NETWORKMANAGER..."
+  print_title "${txtinstallnetwork}..."
   pacstrap /mnt networkmanager
   arch-chroot /mnt systemctl enable NetworkManager
-  print_warning ${txtfinished}
+  print_warning "${txtfinished}"
   pressanykey
 }
 
 generatefstab() {
 	options=()
+	options+=("PARTUUID" "genfstab -t PARTUUID")
 	options+=("UUID" "genfstab -U")
 	options+=("LABEL" "genfstab -L")
-	options+=("PARTUUID" "genfstab -t PARTUUID")
 	options+=("PARTLABEL" "genfstab -t PARTLABEL")
 	sel=$(whiptail --backtitle "${apptitle}" --title "${txtgenerate//%1/fstab}" --menu "" --cancel-button "${txtback}" --default-item "${nextitem}" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
+    print_title "${txtgeneratefstab}..."
 		case ${sel} in
+			"PARTUUID")
+				echo "genfstab -t PARTUUID -p /mnt > /mnt/etc/fstab"
+				genfstab -t PARTUUID -p /mnt > /mnt/etc/fstab
+			;;
 			"UUID")
-        print_title "GERANDO FSTAB..."
 				echo "genfstab -U -p /mnt > /mnt/etc/fstab"
 				genfstab -U -p /mnt > /mnt/etc/fstab
 			;;
 			"LABEL")
-        print_title "GERANDO FSTAB..."
 				echo "genfstab -L -p /mnt > /mnt/etc/fstab"
 				genfstab -L -p /mnt > /mnt/etc/fstab
 			;;
-			"PARTUUID")
-        print_title "GERANDO FSTAB..."
-				echo "genfstab -t PARTUUID -p /mnt > /mnt/etc/fstab"
-				genfstab -t PARTUUID -p /mnt > /mnt/etc/fstab
-			;;
 			"PARTLABEL")
-        print_title "GERANDO FSTAB..."
 				echo "genfstab -t PARTLABEL -p /mnt > /mnt/etc/fstab"
 				genfstab -t PARTLABEL -p /mnt > /mnt/etc/fstab
 			;;
 		esac
 	fi
-  print_warning ${txtfinished}
+  print_warning "${txtfinished}"
 	pressanykey
 }
 
 sethostname(){
 	hostname=$(whiptail --backtitle "${apptitle}" --title "${txtsethostname}" --inputbox "" 0 0 "archlinux" 3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
-		print_title "DEIFNINDO NOME DA MÁQUINA E CONFIGURANDO IP'S..."
+		print_title "${txtsethostname}..."
 		echo "echo \"${hostname}\" > /mnt/etc/hostname"
 		echo "${hostname}" > /mnt/etc/hostname
     echo -e "127.0.0.1 localhost.localdomain localhost\n::1 localhost.localdomain localhost\n127.0.1.1 ${hostname}.localdomain ${hostname}" > /mnt/etc/hosts
-    print_warning ${txtfinished}
+    print_warning "${txtfinished}"
 		pressanykey
 	fi
 }
@@ -773,7 +739,7 @@ setlocale(){
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
-		print_title "CONFIGURANDO IDIOMA PADRÃO..."
+		print_title "${txtsetlocale}..."
 		echo "echo \"LANG=${locale}.UTF-8\" > /mnt/etc/locale.conf"
 		echo "LANG=${locale}.UTF-8" > /mnt/etc/locale.conf
 		echo "echo \"LC_COLLATE=C\" >> /mnt/etc/locale.conf"
@@ -781,7 +747,7 @@ setlocale(){
 		echo "sed -i 's/#\('${locale}'\)/\1/' /mnt}/etc/locale.gen"
 		sed -i 's/#\('${locale}'\)/\1/' /mnt/etc/locale.gen
 		arch-chroot /mnt locale-gen
-    print_warning ${txtfinished}
+    print_warning "${txtfinished}"
 		pressanykey
 	fi
 }
@@ -814,10 +780,10 @@ settimezone() {
 		return 1
 	fi
 
-	print_title "CONFIGURANDO FUSO HORÁRIO..."
+	print_title "${txtsettimezone}..."
 	echo "ln -sf /mnt/usr/share/zoneinfo/${timezone} /mnt/etc/localtime"
 	ln -sf /usr/share/zoneinfo/${timezone} /mnt/etc/localtime
-  print_warning ${txtfinished}
+  print_warning "${txtfinished}"
 	pressanykey
 
 	options=()
@@ -830,7 +796,7 @@ settimezone() {
 		return 1
 	fi
 	
-  print_title "CONFIGURANDO RELÓGIO..."
+  print_title "${txtsettime}..."
 	case ${sel} in
 		"${txthwclockutc}")
 			archchroot settimeutc
@@ -839,7 +805,7 @@ settimezone() {
 			archchroot settimelocal
 		;;
 	esac
-  print_warning ${txtfinished}
+  print_warning "${txtfinished}"
 	pressanykey
 }
 
@@ -860,7 +826,7 @@ setkeymap() {
 		print_title "CONFIGURANDO TECLADO..."
 		echo "echo \"KEYMAP=${keymap}\" > /mnt/etc/vconsole.conf"
 		echo "KEYMAP=${keymap}" > /mnt/etc/vconsole.conf
-    print_warning ${txtfinished}
+    print_warning "${txtfinished}"
 		pressanykey
 	fi
 }
@@ -869,30 +835,30 @@ generatemkinitcpio() {
   print_title "${txtgeneratemkinitcpio}..."
   echo "mkinitcpio -p ${KERNEL_VER}"
   arch-chroot /mnt mkinitcpio -p ${KERNEL_VER}
-  print_warning ${txtfinished}
+  print_warning "${txtfinished}"
   pressanykey  
 }
 
 installgrub() {
-  print_title "INSTALANDO E CONFIGURANDO O GRUB..."
+  print_title "${txtinstallgrub}..."
   pacstrap /mnt grub-efi-x86_64 efibootmgr os-prober
-  arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ArchLinux --recheck
+  arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Arch --recheck
   arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
-  print_warning ${txtfinished}
+  print_warning "${txtfinished}"
   pressanykey  
 }
 
-setrootpasswd() {
-  print_title "CONFIGURANDO SENHA DE ROOT..."
+setrootpassword() {
+  print_title "${txtsetrootpassword}..."
   arch-chroot /mnt passwd
-  print_warning ${txtfinished}
+  print_warning "${txtfinished}"
   pressanykey
 }
 
 reset() {
-  print_title "REDEFININDO INSTALAÇÃO..."
+  print_title "${txtreset}..."
   unmountdevices
-  print_warning ${txtfinished}
+  print_warning "${txtfinished}"
   pressanykey
 }
 
@@ -910,7 +876,7 @@ unmountdevices() {
 		echo "swapoff ${swapdev}"
 		swapoff ${swapdev}
 	fi
-  print_warning " CONCLÚIDO!"
+  print_warning "${txtfinished}"
 	pressanykey
 }
 
@@ -1123,7 +1089,7 @@ loadstrings(){
 	txtenable="Enable %1"
 
 	txtpressanykey="Press any key to continue..."
-  txtfinished="Done."
+  txtfinished=" -<| DONE |>- "
 }
 
 # --------------------------------------------------------
