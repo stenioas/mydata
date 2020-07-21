@@ -1089,7 +1089,7 @@ loadstrings(){
 	txtenable="Enable %1"
 
 	txtpressanykey="Press any key to continue..."
-  txtfinished=" <-< DONE >-> "
+  txtfinished=" DONE!"
 }
 
 # --------------------------------------------------------
