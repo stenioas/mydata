@@ -1026,8 +1026,8 @@ print_line() {
 print_title() {
   clear
   print_line
-  local TITLE=$(echo -e "${BBlue}# $1${Reset}" | tr '[:upper:]' '[:lower:]')
-  echo -e "${TITLE}"
+  local TITLE="$1"
+  echo -e "${BBlue}# ${TITLE^^}${Reset}"
   print_line
   echo ""
 }
