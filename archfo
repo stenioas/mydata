@@ -565,6 +565,7 @@ mountparts(){
 	fi
 	print_warning "${txtfinished}"
 	pressanykey
+	mainmenu
 }
 
 rankmirrors() {
