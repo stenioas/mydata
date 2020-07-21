@@ -88,7 +88,7 @@ mainmenu(){
 	options+=("${txtsetkeymap}" "(KEYMAP= ...)")
 	options+=("${txtgeneratemkinitcpio}" "(mkinitcpio ...)")
 	options+=("${txtinstallgrub}" "")
-	options+=("${txtsetrootpasswd}" "(passwd ...)")
+	options+=("${txtsetrootpassword}" "(passwd ...)")
 	options+=("" "")
 	options+=("${txtreset}" "(Reset ...)")
 	options+=("${txtreboot}" "")
@@ -155,9 +155,9 @@ mainmenu(){
 			;;
 			"${txtinstallgrub}")
 				installgrub
-				nextitem="${txtsetrootpasswd}"
+				nextitem="${txtsetrootpassword}"
 			;;
-			"${txtsetrootpasswd}")
+			"${txtsetrootpassword}")
 				setrootpasswd
 				nextitem="${txtreboot}"
 			;;
@@ -223,7 +223,7 @@ selectdisk() {
 			options+=("${item}" "")
 	done
 	IFS=$IFS_ORIG
-	result=$(whiptail --backtitle "${APPTITLE}" --title "${1}" --menu "" 0 0 0 \
+	result=$(whiptail --backtitle "${apptitle}" --title "${1}" --menu "" 0 0 0 \
   "${options[@]}" 3>&1 1>&2 2>&3)
 	if [ "$?" != "0" ]; then
 			return 1
@@ -564,23 +564,23 @@ mountparts(){
 }
 
 rankmirrors() {
+  countries_code=("AU" "AT" "BD" "BY" "BE" "BA" "BR" "BG" "CA" "CL" "CN" "CO" "HR" "CZ" "DK" "EC" "FI" "FR" "GE" "DE" "GR" "HK" "HU" "IS" "IN" "ID" "IR" "IE" "IL" "IT" "JP" "KZ" "KE" "LV" "LT" "LU" "NL" "NC" "NZ" "MK" "NO" "PY" "PH" "PL" "PT" "RO" "RU" "RS" "SG" "SK" "SI" "ZA" "KR" "ES" "SE" "CH" "TW" "TH" "TR" "UA" "GB" "US" "VN")
+  countries=("Australia" "Austria" "Bangladesh" "Belarus" "Belgium" "Bosnia and Herzegovina" "Brazil" "Bulgaria" "Canada" "Chile" "China" "Colombia" "Croatia" "Czech Republic" "Denmark" "Ecuador" "Finland" "France" "Georgia" "Germany" "Greece" "Hong Kong" "Hungary" "Iceland" "India" "Indonesia" "Iran" "Ireland" "Israel" "Italy" "Japan" "Kazakhstan" "Kenya" "Latvia" "Lithuania" "Luxembourg" "Netherlands" "New Caledonia" "New Zealand" "North Macedonia" "Norway" "Paraguay" "Philippines" "Poland" "Portugal" "Romania" "Russia" "Serbia" "Singapore" "Slovakia" "Slovenia" "South Africa" "South Korea" "Spain" "Sweden" "Switzerland" "Taiwan" "Thailand" "Turkey" "Ukraine" "United Kingdom" "United States" "Viet Nam")
+
+	country=$(whiptail --backtitle "${apptitle}" --title "${txtselectcountry}" --menu "" 0 0 0 \
+	"${countries[@]}" 3>&1 1>&2 2>&3)
+	if [ "$?" != "0" ]; then
+		return 1    
+	fi
+
+  if contains_element "$country" "${countries[@]}"; then
+    country_code=${countries_code[$((REPLY - 1))]}
+  fi
   print_title "${txtrankmirrors}..."
   pacman -Sy --needed pacman-contrib --noconfirm
   if [[ ! -f /etc/pacman.d/mirrorlist.backup ]]; then
     cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
   fi
-  countries_code=("AU" "AT" "BD" "BY" "BE" "BA" "BR" "BG" "CA" "CL" "CN" "CO" "HR" "CZ" "DK" "EC" "FI" "FR" "GE" "DE" "GR" "HK" "HU" "IS" "IN" "ID" "IR" "IE" "IL" "IT" "JP" "KZ" "KE" "LV" "LT" "LU" "NL" "NC" "NZ" "MK" "NO" "PY" "PH" "PL" "PT" "RO" "RU" "RS" "SG" "SK" "SI" "ZA" "KR" "ES" "SE" "CH" "TW" "TH" "TR" "UA" "GB" "US" "VN")
-  countries_name=("Australia" "Austria" "Bangladesh" "Belarus" "Belgium" "Bosnia and Herzegovina" "Brazil" "Bulgaria" "Canada" "Chile" "China" "Colombia" "Croatia" "Czech Republic" "Denmark" "Ecuador" "Finland" "France" "Georgia" "Germany" "Greece" "Hong Kong" "Hungary" "Iceland" "India" "Indonesia" "Iran" "Ireland" "Israel" "Italy" "Japan" "Kazakhstan" "Kenya" "Latvia" "Lithuania" "Luxembourg" "Netherlands" "New Caledonia" "New Zealand" "North Macedonia" "Norway" "Paraguay" "Philippines" "Poland" "Portugal" "Romania" "Russia" "Serbia" "Singapore" "Slovakia" "Slovenia" "South Africa" "South Korea" "Spain" "Sweden" "Switzerland" "Taiwan" "Thailand" "Turkey" "Ukraine" "United Kingdom" "United States" "Viet Nam")
-
-	country_name=$(whiptail --backtitle "${APPTITLE}" --title "${txtselectcountry}"--menu "" 0 0 0 "${countries_name[@]}" 3>&1 1>&2 2>&3)
-	if [ "$?" != "0" ]; then
-			return 1    
-	fi
-  if contains_element "$country_name" "${countries_name[@]}"; then
-    country_code=${countries_code[$((REPLY - 1))]}
-    break
-  fi
-  print_title "RANKEANDO ESPELHOS DE REDE..."
   curl -so "/etc/pacman.d/mirrorlist.tmp" "https://www.archlinux.org/mirrorlist/?country=${country_code}&use_mirror_status=on"
   sed -i 's/^#Server/Server/g' "/etc/pacman.d/mirrorlist.tmp"
   rankmirrors /etc/pacman.d/mirrorlist.tmp > /etc/pacman.d/mirrorlist
@@ -593,7 +593,7 @@ rankmirrors() {
 # --------------------------------------------------------
 
 installbase() {
-  print_title "INSTALANDO BASE DO SISTEMA..."
+  print_title "${txtinstallbase}..."
 	pkgs="base base-devel linux-firmware"
 	options=()
 	options+=("linux" "")
@@ -673,6 +673,7 @@ installbase() {
 	clear
 	echo "pacstrap /mnt ${pkgs}"
 	pacstrap /mnt ${pkgs}
+	print_warning ${txtfinished}
 	pressanykey
 }
 
@@ -1034,7 +1035,7 @@ print_title() {
 
 print_warning() {
   T_COLS=$(tput cols)
-  echo -e "\n${BGreen}$1${Reset}\n" | fold -sw $(( T_COLS - 1 ))
+  echo -e "\n${BGreen} | $1$ |{Reset}\n" | fold -sw $(( T_COLS - 1 ))
 }
 
 contains_element() {
@@ -1043,7 +1044,7 @@ contains_element() {
 
 invalid_option() {
     print_line
-    echo "Opção inválida. Tente novamente..."
+    echo "Invalid option. Try again..."
     pressanykey
 }
 
@@ -1056,7 +1057,7 @@ pressanykey() {
 
 loadstrings(){
 
-	locale=pt_BR.UTF-8
+	locale=pt_BR
 
 	txtexit="Exit"
 	txtback="Back"
@@ -1078,7 +1079,7 @@ loadstrings(){
 	txtsetkeymap="Set keymap layout"
 	txtgeneratemkinitcpio="Mkinitcpio generate"
 	txtinstallgrub="Install bootloader GRUB"
-	txtsetrootpasswd="Set root password"
+	txtsetrootpassword="Set root password"
 	txthelp="Help"
 	txtchangelog="Changelog"
   txtreset="Reset"
@@ -1105,10 +1106,7 @@ loadstrings(){
 	txtinstallarchlinuxkernel="Kernel"
 	txtinstallarchlinuxfilesystems="File Systems"
 
-	txtsethostname="Set Computer Name"
-	txtsetlocale="Set Locale"
 	txtsettime="Set Time"
-	txtsetrootpassword="Set root password"
 
 	txthwclock="Hardware clock :"
 	txthwclockutc="UTC"
@@ -1125,7 +1123,7 @@ loadstrings(){
 	txtenable="Enable %1"
 
 	txtpressanykey="Press any key to continue..."
-  txtfinished=" !- DONE -!"
+  txtfinished="Done."
 }
 
 # --------------------------------------------------------
